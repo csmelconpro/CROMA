@@ -1378,7 +1378,8 @@ function StatsScreen({ allOwned, onBack, T }) {
 }
 
 // - PROFILE SCREEN -
-function ProfileScreen({ allOwned, user, syncStatus, onSignOut, onGoAuth, onBack, T }) {
+function ProfileScreen({ allOwned, user, syncStatus, onSignOut, onGoAuth, updateProfile, onBack, T }) {
+  const usernameInputRef = useRef(null);
   const totalCards = Object.values(COLLECTIONS).reduce((a,c)=>a+c.cards.length,0);
   const totalOwned = Object.values(COLLECTIONS).reduce((a,c)=>{
     const om = allOwned[c.id]||{};
@@ -1419,7 +1420,9 @@ function ProfileScreen({ allOwned, user, syncStatus, onSignOut, onGoAuth, onBack
                   if (!file) return;
                   const reader = new FileReader();
                   reader.onload = ev => {
-                    localStorage.setItem("croma_photo", ev.target.result);
+                    const photoData = ev.target.result;
+                    localStorage.setItem("croma_photo", photoData);
+                    if (user) updateProfile({ photo_url: photoData });
                     window.location.reload();
                   };
                   reader.readAsDataURL(file);
@@ -1433,21 +1436,19 @@ function ProfileScreen({ allOwned, user, syncStatus, onSignOut, onGoAuth, onBack
           {/* Username editor */}
           <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:12}}>
             <input
+              ref={usernameInputRef}
               defaultValue={user?.user_metadata?.username || localStorage.getItem("croma_username") || ""}
               placeholder="Tu nombre de usuario"
-              onBlur={e=>{
-                const val = e.target.value.trim();
-                if (val) {
-                  localStorage.setItem("croma_username", val);
-                }
-              }}
               style={{flex:1,background:T.surface2,border:`1px solid ${T.border}`,
                 borderRadius:8,padding:"6px 10px",color:T.text,fontSize:13,
                 fontFamily:"'Inter',sans-serif",outline:"none"}}
             />
             <button onClick={()=>{
-              const val = localStorage.getItem("croma_username");
-              if (val) window.location.reload();
+              const val = usernameInputRef.current?.value.trim();
+              if (!val) return;
+              localStorage.setItem("croma_username", val);
+              if (user) updateProfile({ username: val });
+              window.location.reload();
             }}
               style={{padding:"6px 12px",borderRadius:8,background:T.accent,
                 border:"none",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer"}}>
@@ -1538,6 +1539,7 @@ function ProfileScreen({ allOwned, user, syncStatus, onSignOut, onGoAuth, onBack
               return (
                 <div key={icon} onClick={()=>{
                   localStorage.setItem("croma_avatar", icon);
+                  if (user) updateProfile({ avatar_url: icon });
                   window.location.reload();
                 }}
                   style={{width:"100%",aspectRatio:"1",borderRadius:12,
@@ -2535,6 +2537,21 @@ export default function App() {
     setSyncStatus('idle');
   };
 
+  // Update profile fields (username, avatar_url, photo_url) in Supabase.
+  // Only runs when user is authenticated; errors are silent.
+  const updateProfile = async (fields) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ ...fields, updated_at: new Date().toISOString() })
+        .eq('id', user.id);
+      if (error) console.error('[croma] updateProfile error', error.message);
+    } catch (e) {
+      console.error('[croma] updateProfile exception', e.message);
+    }
+  };
+
   const toggleTheme = () => { const n=theme==='dark'?'light':'dark'; setTheme(n); LS.saveTheme(n); };
   const toggleCost  = () => { const n=!showCost; setShowCost(n); LS.savShowCost(n); };
 
@@ -2620,6 +2637,7 @@ export default function App() {
     repeats: <RepeatsScreen allOwned={allOwned} allRepeats={allRepeats} onBack={()=>setScreen("home")} T={T}/>,
     profile: <ProfileScreen allOwned={allOwned} user={user} syncStatus={syncStatus}
       onSignOut={handleSignOut} onGoAuth={()=>setScreen("auth")}
+      updateProfile={updateProfile}
       onBack={()=>setScreen("home")} T={T}/>,
     achievements: <AchievementsScreen allOwned={allOwned} onBack={()=>setScreen("home")} T={T}/>,
     search: <SearchScreen allOwned={allOwned} onTeamClick={handleSearchTeamClick} onBack={()=>setScreen("home")} T={T}/>,
