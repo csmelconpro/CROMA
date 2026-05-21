@@ -135,8 +135,6 @@ function Shield({ team, size = 32 }) {
     "Túnez":            <D><Base fill="#E70013"/><circle cx={s*.45} cy={s*.52} r={s*.22} fill="#fff" clipPath={`url(#${c})`}/><circle cx={s*.5} cy={s*.52} r={s*.16} fill="#E70013" clipPath={`url(#${c})`}/><T text="TUN"/></D>,
     "Uruguay":          <D><Base fill="#5EB6E4"/><HStripe fill="#fff" y1={0.37} h={0.26}/><T text="URU" fill="#003087"/></D>,
     "Uzbekistán":       <D><Base fill="#1EB53A"/><HStripe fill="#fff" y1={0.35} h={0.08}/><HStripe fill="#CE1126" y1={0.43} h={0.22}/><HStripe fill="#fff" y1={0.65} h={0.08}/><T text="UZB"/></D>,
-  };
-
     "República Checa":  <D><Base fill="#D7141A"/><Half fill="#fff" right={false}/><TopBar fill="#11457E" h={0.35}/><T text="CZE" fill="#D7141A"/></D>,
     "Bosnia-Herzegovina":<D><Base fill="#002395"/><path d={`M${s*.2},${s*.08} L${s*.8},${s*.95}`} stroke="#FFCC00" strokeWidth={s*.12} clipPath={`url(#${c})`}/><T text="BIH" fill="#FFCC00"/></D>,
     "R.D. Congo":       <D><Base fill="#007FFF"/><HStripe fill="#F7D618" y1={0.43} h={0.14}/><HStripe fill="#CE1126" y1={0.57} h={0.43}/><T text="COD" fill="#007FFF"/></D>,
@@ -147,6 +145,7 @@ function Shield({ team, size = 32 }) {
     "Italia":           <D><Base fill="#009246"/><VStripe fill="#fff" x1={0.33} w={0.34}/><Half fill="#CE2B37"/><T text="ITA" fill="#fff"/></D>,
     "Jamaica":          <D><Base fill="#000"/><path d={`M${s*.1},${s*.08} L${s*.9},${s*.95} M${s*.9},${s*.08} L${s*.1},${s*.95}`} stroke="#FED100" strokeWidth={s*.16} clipPath={`url(#${c})`}/><T text="JAM" fill="#FED100"/></D>,
     "Polonia":          <D><Base fill="#fff"/><HStripe fill="#DC143C" y1={0.5} h={0.5}/><T text="POL" fill="#DC143C" y={0.74}/></D>,
+  };
 
     const fallback = (
     <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} style={{flexShrink:0}}>
