@@ -295,6 +295,8 @@ const LS = {
   saveTheme:  t => { try { localStorage.setItem('croma_theme',t); } catch {} },
   loadShowCost: () => { try { return localStorage.getItem('croma_showcost')==='true'; } catch { return false; } },
   savShowCost:v => { try { localStorage.setItem('croma_showcost',v?'true':'false'); } catch {} },
+  loadMode:  id  => { try { return localStorage.getItem(`croma_mode_${id}`)||null; } catch { return null; } },
+  saveMode:  (id,mode) => { try { localStorage.setItem(`croma_mode_${id}`,mode); } catch {} },
 };
 
 // - ACHIEVEMENTS -
