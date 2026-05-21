@@ -1,6 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { LALIGA_CARDS } from './data/laliga.js';
 import { MUNDIAL_CARDS } from './data/mundial.js';
+import { MEGACRACKS_CARDS } from './data/megacracks.js';
+import { MUNDIAL_STICKERS } from './data/mundial_stickers.js';
 
 // - THEMES -
 const THEMES = {
@@ -708,19 +710,41 @@ function HomeScreen({ allOwned, allRepeats, onEnter, onNav, T, theme, toggleThem
 
       <div style={{padding:"0 16px"}}>
         {/* COLLECTIONS */}
-        <div style={{height:1,background:T.border,marginBottom:24}}/>
+        <div style={{height:1,background:T.border,marginBottom:16}}/>
+
+        {/* Cards / Stickers toggle */}
+        <div style={{display:"flex",gap:8,marginBottom:16}}>
+          {[["cards","🃏 Cartas"],["stickers","🏷️ Cromos"]].map(([type,label])=>(
+            <button key={type} onClick={()=>setCollType(type)}
+              style={{flex:1,padding:"8px 0",borderRadius:20,fontSize:13,fontWeight:700,cursor:"pointer",border:"none",
+                fontFamily:"'Inter',sans-serif",background:collType===type?T.accent:T.surface2,
+                color:collType===type?"#fff":T.textDim,transition:"all 0.15s"}}>
+              {label}
+            </button>
+          ))}
+        </div>
+
         <SectionLabel T={T}>Mis Colecciones</SectionLabel>
-        {Object.values(COLLECTIONS).map(coll => {
-          const ownedMap = coll.id==="laliga" ? laligaOwned : mundialOwned;
-          const pct = coll.id==="laliga" ? laligaPct : mundialPct;
-          const count = coll.cards.filter(c => ownedMap[c.id]!==undefined ? ownedMap[c.id] : c.owned).length;
-          const isLL = coll.id==="laliga";
-          const grad = isLL ? "linear-gradient(90deg,#fbbf24,#dc2626)" : "linear-gradient(90deg,#16a34a,#a855f7)";
+        {visibleColls.map(coll => {
+          const om = allOwned[coll.id]||{};
+          const pct = getPct(coll.cards, om);
+          const count = coll.cards.filter(c => om[c.id]!==undefined ? om[c.id] : c.owned).length;
+          const missing = coll.cards.filter(c => !(om[c.id]!==undefined ? om[c.id] : c.owned)).length;
+          const minCost = Math.ceil(missing / coll.cardsPerPack) * coll.pricePerPack;
+          const realCost = (() => {
+            let cost = 0;
+            for (let i = 1; i <= missing; i++) cost += (coll.cards.length / (i * coll.cardsPerPack)) * coll.pricePerPack;
+            return Math.round(cost);
+          })();
+          const grad = coll.id==="laliga" ? "linear-gradient(90deg,#fbbf24,#dc2626)"
+            : coll.id==="mundial" ? "linear-gradient(90deg,#16a34a,#a855f7)"
+            : coll.id==="megacracks" ? "linear-gradient(90deg,#f0c040,#b45309)"
+            : "linear-gradient(90deg,#38bdf8,#0284c7)";
           return (
             <div key={coll.id} onClick={()=>onEnter(coll.id)}
               style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:20,marginBottom:10,cursor:"pointer"}}>
               <div style={{display:"flex",alignItems:"center",gap:14}}>
-                {isLL ? <LaLigaIcon size={46}/> : <MundialIcon size={46}/>}
+                <CollectionIcon collId={coll.id} size={46}/>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontWeight:800,fontSize:18,color:T.text,lineHeight:1}}>{coll.name}</div>
                   <div style={{fontSize:11,color:T.textDim,marginBottom:10}}>{coll.sub}</div>
@@ -728,8 +752,14 @@ function HomeScreen({ allOwned, allRepeats, onEnter, onNav, T, theme, toggleThem
                     <div style={{height:"100%",width:`${pct}%`,background:grad,borderRadius:4,transition:"width 0.6s"}}/>
                   </div>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:5}}>
-                    <div style={{fontSize:11,color:T.textDim}}>{count} / {coll.cards.length} cards</div>
-                    {showCost && <div style={{fontSize:10,color:T.gold}}>~{isLL?estCostLaliga:estCostMundial}€ para completar</div>}
+                    <div style={{fontSize:11,color:T.textDim}}>{count} / {coll.cards.length} {coll.type==="stickers"?"cromos":"cartas"}</div>
+                    {showCost && (
+                      <div style={{display:"flex",gap:5,alignItems:"center"}}>
+                        <span style={{fontSize:10,color:T.gold}}>min {minCost}€</span>
+                        <span style={{fontSize:9,color:T.textDim}}>·</span>
+                        <span style={{fontSize:10,color:T.accent}}>~{realCost}€</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div style={{position:"relative",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
@@ -737,7 +767,7 @@ function HomeScreen({ allOwned, allRepeats, onEnter, onNav, T, theme, toggleThem
                   <div style={{position:"absolute",fontWeight:800,fontSize:14,color:coll.color}}>{pct}%</div>
                 </div>
               </div>
-              <div style={{marginTop:14,fontSize:12,color:T.textDim,borderTop:`1px solid ${T.border}`,paddingTop:12}}>Ver colección →</div>
+              <div style={{marginTop:14,fontSize:12,color:T.textDim,borderTop:`1px solid ${T.border}`,paddingTop:12}}>Ver coleccion →</div>
             </div>
           );
         })}
@@ -1069,12 +1099,13 @@ const NATIONAL = {
   "Uruguay":{"p":"#5EB6E4","s":"#ffffff"},"Uzbekistán":{"p":"#1EB53A","s":"#ffffff"},
 };
 
-function TeamScreen({ team, collId, ownedMap, onBack, T }) {
+function TeamScreen({ team, collId, ownedMap, repeatsMap, onTap, onLongPress, onBack, T }) {
   const t = TEAMS[team] || NATIONAL[team] || { p:"#1a3a6b", s:"#ffffff", abbr:"?" };
   const coll = COLLECTIONS[collId];
-  const teamCards = coll.cards.filter(c => c.team === team);
+  let teamCards = coll.cards.filter(c => c.team === team);
+  if (teamCards.length === 0) teamCards = coll.cards.filter(c => c.section === team);
   const owned = teamCards.filter(c => ownedMap[c.id]!==undefined ? ownedMap[c.id] : c.owned);
-  const pct = Math.round(owned.length / teamCards.length * 100);
+  const pct = teamCards.length ? Math.round(owned.length / teamCards.length * 100) : 0;
 
   // Group by section
   const sections = {};
@@ -1089,8 +1120,8 @@ function TeamScreen({ team, collId, ownedMap, onBack, T }) {
 
       {/* Hero header with team colors */}
       <div style={{
-        background: `linear-gradient(160deg, ${t.p} 0%, ${t.p}88 60%, #0a0a0a 100%)`,
-        padding: "56px 20px 28px",
+        background: `linear-gradient(160deg, ${t.p} 0%, ${t.p}88 60%, ${T.bg} 100%)`,
+        padding: "max(56px,env(safe-area-inset-top)) 20px 28px",
         position: "relative",
         overflow: "hidden",
       }}>
@@ -1107,14 +1138,14 @@ function TeamScreen({ team, collId, ownedMap, onBack, T }) {
             <div style={{fontSize:12,color:"rgba(255,255,255,0.6)",marginTop:4}}>{coll.name}</div>
             <div style={{marginTop:8,display:"flex",alignItems:"center",gap:10}}>
               <div style={{fontWeight:800,fontSize:22,color:pct===100?"#22c55e":pct>60?"#f0c040":"#f97316"}}>{pct}%</div>
-              <div style={{fontSize:12,color:"rgba(255,255,255,0.5)"}}>{owned.length} / {teamCards.length} cartas</div>
+              <div style={{fontSize:12,color:"rgba(255,255,255,0.5)"}}>{owned.length} / {teamCards.length} {coll.type==="stickers"?"cromos":"cartas"}</div>
             </div>
           </div>
         </div>
 
         {/* Progress bar */}
         <div style={{height:4,background:"rgba(0,0,0,0.3)",borderRadius:4,overflow:"hidden",marginTop:20}}>
-          <div style={{height:"100%",width:`${pct}%`,background: pct===100?"#22c55e":t.s==="#ffffff"?"rgba(255,255,255,0.9)":t.s,borderRadius:4,transition:"width 0.6s"}}/>
+          <div style={{height:"100%",width:`${pct}%`,background:pct===100?"#22c55e":t.s==="#ffffff"?"rgba(255,255,255,0.9)":t.s,borderRadius:4,transition:"width 0.6s"}}/>
         </div>
       </div>
 
@@ -1122,14 +1153,20 @@ function TeamScreen({ team, collId, ownedMap, onBack, T }) {
       <div style={{padding:"20px 16px"}}>
         {Object.entries(sections).map(([section, cards]) => (
           <div key={section} style={{marginBottom:28}}>
-            <div style={{fontSize:10,letterSpacing:3,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",fontWeight:700,marginBottom:12,paddingLeft:2}}>
+            <div style={{fontSize:10,letterSpacing:3,color:T.textDim,textTransform:"uppercase",fontWeight:700,marginBottom:12,paddingLeft:2}}>
               {section}
             </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
               {cards.map(card => {
                 const isOwned = ownedMap[card.id]!==undefined ? ownedMap[card.id] : card.owned;
+                const reps = repeatsMap ? (repeatsMap[card.id]||0) : 0;
                 return (
-                  <PlayerCard key={card.id} card={card} owned={isOwned} T={T} teamPrimary={t.p} teamSecondary={t.s}/>
+                  <TapCard key={card.id}
+                    onTap={()=>onTap&&onTap(collId,card.id)}
+                    onLongPress={()=>onLongPress&&onLongPress(collId,card.id)}
+                    style={{cursor:"pointer"}}>
+                    <PlayerCard card={card} owned={isOwned} repeats={reps} T={T} teamPrimary={t.p} teamSecondary={t.s}/>
+                  </TapCard>
                 );
               })}
             </div>
@@ -1860,25 +1897,61 @@ function SearchScreen({ allOwned, onTeamClick, onBack, T }) {
 
 
 // - NAV BAR -
+function NavIcon({ id, active, color }) {
+  const c = active ? color : "#6b7280";
+  const s = 22;
+  if (id==="home") return (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+      <path d="M9 21V12h6v9"/>
+    </svg>
+  );
+  if (id==="repeats") return (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/>
+      <path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/>
+    </svg>
+  );
+  if (id==="search") return (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+  );
+  if (id==="stats") return (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/>
+    </svg>
+  );
+  if (id==="profile") return (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+    </svg>
+  );
+  return null;
+}
+
 function NavBar({ screen, onNav, T }) {
   const items = [
-    { id:"home",    label:"Inicio",    icon:"🏠" },
-    { id:"repeats", label:"Repetidas", icon:"🔄" },
-    { id:"search",  label:"Buscar",    icon:"🔍" },
-    { id:"stats",   label:"Stats",     icon:"📊" },
-    { id:"profile", label:"Perfil",    icon:"👤" },
+    { id:"home",    label:"Inicio"    },
+    { id:"repeats", label:"Repetidas" },
+    { id:"search",  label:"Buscar"    },
+    { id:"stats",   label:"Stats"     },
+    { id:"profile", label:"Perfil"    },
   ];
   return (
     <div style={{position:"fixed",bottom:0,left:0,right:0,background:T.surface,borderTop:`1px solid ${T.border}`,
-      display:"flex",justifyContent:"space-around",padding:"10px 0 20px",zIndex:200}}>
-      {items.map(item=>(
-        <button key={item.id} onClick={()=>onNav(item.id)}
-          style={{background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3,fontFamily:"'Inter',sans-serif",minWidth:60}}>
-          <span style={{fontSize:22}}>{item.icon}</span>
-          <span style={{fontSize:10,fontWeight:600,color:screen===item.id?T.accent:T.textDim}}>{item.label}</span>
-          {screen===item.id && <div style={{width:4,height:4,borderRadius:"50%",background:T.accent}}/>}
-        </button>
-      ))}
+      display:"flex",justifyContent:"space-around",padding:"10px 0 max(20px,env(safe-area-inset-bottom))",zIndex:200}}>
+      {items.map(item=>{
+        const active = screen===item.id;
+        return (
+          <button key={item.id} onClick={()=>onNav(item.id)}
+            style={{background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:4,fontFamily:"'Inter',sans-serif",minWidth:56,padding:"0 4px"}}>
+            <NavIcon id={item.id} active={active} color={T.accent}/>
+            <span style={{fontSize:10,fontWeight:600,color:active?T.accent:T.textDim}}>{item.label}</span>
+            {active && <div style={{width:4,height:4,borderRadius:"50%",background:T.accent}}/>}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -1894,8 +1967,8 @@ export default function App() {
   const T = THEMES[theme];
 
   const [collModes, setCollModes] = useState(()=>({laliga:LS.loadMode("laliga"),mundial:LS.loadMode("mundial"),megacracks:LS.loadMode("megacracks"),mundialst:LS.loadMode("mundialst")}));
-  const [allOwned, setAllOwned] = useState(()=>({laliga:LS.loadOwned("laliga"),mundial:LS.loadOwned("mundial")}));
-  const [allRepeats, setAllRepeats] = useState(()=>({laliga:LS.loadRepeats("laliga"),mundial:LS.loadRepeats("mundial")}));
+  const [allOwned, setAllOwned] = useState(()=>({laliga:LS.loadOwned("laliga"),mundial:LS.loadOwned("mundial"),megacracks:LS.loadOwned("megacracks"),mundialst:LS.loadOwned("mundialst")}));
+  const [allRepeats, setAllRepeats] = useState(()=>({laliga:LS.loadRepeats("laliga"),mundial:LS.loadRepeats("mundial"),megacracks:LS.loadRepeats("megacracks"),mundialst:LS.loadRepeats("mundialst")}));
 
   const toggleTheme = () => { const n=theme==='dark'?'light':'dark'; setTheme(n); LS.saveTheme(n); };
   const toggleCost  = () => { const n=!showCost; setShowCost(n); LS.savShowCost(n); };
