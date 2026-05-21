@@ -1229,21 +1229,26 @@ function TeamScreen({ team, collId, ownedMap, repeatsMap, onToggle, onRepeat, on
                         {card.name}
                       </div>
                     </div>
-                    {/* Bottom: CROMA + repeats buttons */}
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:8}}>
+                    {/* Bottom: CROMA label */}
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:6}}>
                       <div style={{fontSize:8,fontWeight:700,color:"rgba(255,255,255,0.3)",letterSpacing:2}}>CROMA</div>
-                      {isOwned && onRepeat && (
-                        <div style={{display:"flex",alignItems:"center",gap:3}}>
-                          <button onClick={e=>{e.stopPropagation();onRepeat(collId,card.id,-1);}}
-                            style={{width:18,height:18,borderRadius:4,border:"none",background:"rgba(255,255,255,0.15)",
-                              color:"#fff",fontSize:13,lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>-</button>
-                          <span style={{fontSize:10,fontWeight:700,color:reps>0?"#f0c040":"rgba(255,255,255,0.4)",minWidth:10,textAlign:"center"}}>{reps||0}</span>
-                          <button onClick={e=>{e.stopPropagation();onRepeat(collId,card.id,1);}}
-                            style={{width:18,height:18,borderRadius:4,border:"none",background:"rgba(255,255,255,0.15)",
-                              color:"#fff",fontSize:13,lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>+</button>
-                        </div>
-                      )}
                     </div>
+                    {/* Repeats row - below the card */}
+                    {isOwned && onRepeat && (
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"center",
+                        gap:8,marginTop:6,paddingTop:6,borderTop:"1px solid rgba(255,255,255,0.1)"}}>
+                        <button onClick={e=>{e.stopPropagation();onRepeat(collId,card.id,-1);}}
+                          style={{width:22,height:22,borderRadius:6,border:"1px solid rgba(255,255,255,0.2)",
+                            background:"rgba(0,0,0,0.2)",color:"#fff",fontSize:14,
+                            display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>-</button>
+                        <span style={{fontSize:11,fontWeight:800,color:reps>0?"#f0c040":"rgba(255,255,255,0.4)",
+                          minWidth:16,textAlign:"center"}}>{reps||0}</span>
+                        <button onClick={e=>{e.stopPropagation();onRepeat(collId,card.id,1);}}
+                          style={{width:22,height:22,borderRadius:6,border:"1px solid rgba(255,255,255,0.2)",
+                            background:"rgba(0,0,0,0.2)",color:"#fff",fontSize:14,
+                            display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>+</button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -2241,7 +2246,9 @@ export default function App() {
   const handleSelectGroup = (group, section) => {
     setActiveGroup(group);
     setActiveGroupSection(section);
-    setScreen("group");
+    setActiveTeamName(group);
+    setTeamBackScreen("collection");
+    setScreen("team");
   };
 
   const screens = {
