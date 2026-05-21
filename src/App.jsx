@@ -278,17 +278,28 @@ function MegacracksIcon({ size = 46 }) {
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none">
       <defs>
-        <linearGradient id="mcBg" x1="0" y1="0" x2={s} y2={s} gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#1a1a1a"/>
-          <stop offset="100%" stopColor="#2d2d2d"/>
+        <linearGradient id="mcBg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#0a1628"/>
+          <stop offset="50%" stopColor="#0d2a4a"/>
+          <stop offset="100%" stopColor="#0a3a6b"/>
+        </linearGradient>
+        <linearGradient id="mcAccent" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#60a5fa"/>
+          <stop offset="100%" stopColor="#3b82f6"/>
         </linearGradient>
       </defs>
       <rect width={size} height={size} rx={size*0.22} fill="url(#mcBg)"/>
-      <rect x={s*.12} y={s*.18} width={s*.76} height={s*.64} rx={s*.06} fill="none" stroke="#f0c040" strokeWidth={s*.04}/>
-      <rect x={s*.22} y={s*.28} width={s*.56} height={s*.44} rx={s*.04} fill="#f0c04022"/>
-      <text x={s*.5} y={s*.56} textAnchor="middle" dominantBaseline="middle"
-        fontSize={s*.26} fontWeight="900" fill="#f0c040" style={{fontFamily:"Inter,sans-serif"}}>MC</text>
-      <circle cx={s*.5} cy={s*.13} r={s*.05} fill="#f0c040"/>
+      {/* Card shape */}
+      <rect x={s*.18} y={s*.2} width={s*.64} height={s*.52} rx={s*.08} fill="none" stroke="url(#mcAccent)" strokeWidth={s*.04}/>
+      {/* Inner accent lines */}
+      <line x1={s*.18} y1={s*.38} x2={s*.82} y2={s*.38} stroke="#60a5fa" strokeWidth={s*.025} opacity="0.4"/>
+      {/* Stars top */}
+      <circle cx={s*.35} cy={s*.29} r={s*.03} fill="#60a5fa"/>
+      <circle cx={s*.5}  cy={s*.26} r={s*.04} fill="#93c5fd"/>
+      <circle cx={s*.65} cy={s*.29} r={s*.03} fill="#60a5fa"/>
+      {/* MC text */}
+      <text x={s*.5} y={s*.62} textAnchor="middle" dominantBaseline="middle"
+        fontSize={s*.2} fontWeight="900" fill="#93c5fd" style={{fontFamily:"Inter,sans-serif",letterSpacing:2}}>MC</text>
     </svg>
   );
 }
@@ -298,19 +309,27 @@ function MundialStickersIcon({ size = 46 }) {
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none">
       <defs>
-        <linearGradient id="msBg" x1="0" y1="0" x2={s} y2={s} gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#0a1628"/><stop offset="100%" stopColor="#0d2a4a"/>
+        <linearGradient id="msBg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#134e13"/>
+          <stop offset="50%" stopColor="#15803d"/>
+          <stop offset="100%" stopColor="#4a1d96"/>
         </linearGradient>
       </defs>
       <rect width={size} height={size} rx={size*0.22} fill="url(#msBg)"/>
-      <rect x={s*.14} y={s*.16} width={s*.72} height={s*.58} rx={s*.05} fill="none" stroke="#38bdf8" strokeWidth={s*.04}/>
-      <line x1={s*.14} y1={s*.42} x2={s*.86} y2={s*.42} stroke="#38bdf8" strokeWidth={s*.03} opacity="0.4"/>
-      <circle cx={s*.36} cy={s*.29} r={s*.09} fill="#38bdf822"/>
-      <circle cx={s*.36} cy={s*.29} r={s*.06} fill="#38bdf8"/>
-      <rect x={s*.52} y={s*.22} width={s*.26} height={s*.04} rx={s*.02} fill="#38bdf8" opacity="0.7"/>
-      <rect x={s*.52} y={s*.32} width={s*.18} height={s*.04} rx={s*.02} fill="#38bdf8" opacity="0.4"/>
-      <text x={s*.5} y={s*.73} textAnchor="middle" dominantBaseline="middle"
-        fontSize={s*.13} fontWeight="800" fill="#38bdf8" style={{fontFamily:"Inter,sans-serif"}}>STICKERS</text>
+      {/* Sticker shape with peel corner */}
+      <rect x={s*.15} y={s*.18} width={s*.62} height={s*.52} rx={s*.06} fill="rgba(255,255,255,0.12)"/>
+      <rect x={s*.15} y={s*.18} width={s*.62} height={s*.52} rx={s*.06} fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth={s*.03}/>
+      {/* Peel corner top right */}
+      <path d={`M${s*.62},${s*.18} L${s*.77},${s*.18} L${s*.77},${s*.33} Z`} fill="rgba(255,255,255,0.25)"/>
+      <path d={`M${s*.62},${s*.18} L${s*.77},${s*.33}`} stroke="rgba(255,255,255,0.5)" strokeWidth={s*.025}/>
+      {/* Dots pattern */}
+      <circle cx={s*.32} cy={s*.35} r={s*.035} fill="rgba(255,255,255,0.6)"/>
+      <circle cx={s*.46} cy={s*.35} r={s*.035} fill="rgba(255,255,255,0.6)"/>
+      <circle cx={s*.32} cy={s*.49} r={s*.035} fill="rgba(255,255,255,0.4)"/>
+      <circle cx={s*.46} cy={s*.49} r={s*.035} fill="rgba(255,255,255,0.4)"/>
+      {/* STICKERS text */}
+      <text x={s*.5} y={s*.8} textAnchor="middle" dominantBaseline="middle"
+        fontSize={s*.12} fontWeight="800" fill="rgba(255,255,255,0.85)" style={{fontFamily:"Inter,sans-serif",letterSpacing:1}}>STICKERS</text>
     </svg>
   );
 }
@@ -1179,27 +1198,52 @@ function TeamScreen({ team, collId, ownedMap, repeatsMap, onToggle, onRepeat, on
               {cards.map(card => {
                 const isOwned = ownedMap[card.id]!==undefined ? ownedMap[card.id] : card.owned;
                 const reps = repeatsMap ? (repeatsMap[card.id]||0) : 0;
-                const handleTap = () => {
-                  if (onToggle) onToggle(collId, card.id, !isOwned);
-                  else if (onTap) onTap(collId, card.id);
-                };
                 return (
-                  <div key={card.id} style={{position:"relative"}}>
-                    <div onClick={handleTap} style={{cursor:"pointer"}}>
-                      <PlayerCard card={card} owned={isOwned} repeats={reps} T={T} teamPrimary={t.p} teamSecondary={t.s}/>
+                  <div key={card.id} style={{
+                    background: isOwned
+                      ? `linear-gradient(150deg,${t.p}dd,${t.p}88)`
+                      : T.surface2,
+                    border:`1px solid ${isOwned?t.p+"66":T.border}`,
+                    borderRadius:14,padding:"12px 10px 10px",
+                    position:"relative",overflow:"hidden",
+                    display:"flex",flexDirection:"column",justifyContent:"space-between",
+                    minHeight:90,opacity:isOwned?1:0.55,
+                  }}>
+                    {/* Watermark number */}
+                    <div style={{position:"absolute",right:-2,top:-6,fontSize:44,fontWeight:900,
+                      color:"rgba(255,255,255,0.07)",lineHeight:1}}>{card.num}</div>
+                    {/* Top row */}
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+                      <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.5)",letterSpacing:1}}>#{card.num}</div>
+                      {isOwned
+                        ? reps>0
+                          ? <div style={{background:"rgba(240,192,64,0.25)",color:"#f0c040",fontWeight:900,fontSize:9,padding:"1px 6px",borderRadius:8}}>+{reps}</div>
+                          : <div style={{width:7,height:7,borderRadius:"50%",background:"#22c55e"}}/>
+                        : <div style={{width:7,height:7,borderRadius:"50%",background:"rgba(255,255,255,0.15)"}}/>
+                      }
                     </div>
-                    {isOwned && onRepeat && (
-                      <div style={{position:"absolute",bottom:6,right:6,display:"flex",alignItems:"center",gap:3,
-                        background:"rgba(0,0,0,0.55)",borderRadius:8,padding:"2px 4px"}}>
-                        <button onClick={e=>{e.stopPropagation();onRepeat(collId,card.id,-1);}}
-                          style={{width:18,height:18,borderRadius:4,border:"none",background:"rgba(255,255,255,0.12)",
-                            color:"#fff",fontSize:13,lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>-</button>
-                        <span style={{fontSize:11,fontWeight:700,color:reps>0?"#f0c040":"rgba(255,255,255,0.5)",minWidth:10,textAlign:"center"}}>{reps}</span>
-                        <button onClick={e=>{e.stopPropagation();onRepeat(collId,card.id,1);}}
-                          style={{width:18,height:18,borderRadius:4,border:"none",background:"rgba(255,255,255,0.12)",
-                            color:"#fff",fontSize:13,lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>+</button>
+                    {/* Name */}
+                    <div onClick={()=>onToggle&&onToggle(collId,card.id,!isOwned)} style={{cursor:"pointer",flex:1,display:"flex",alignItems:"center"}}>
+                      <div style={{fontSize:12,fontWeight:800,color:"#fff",lineHeight:1.2,
+                        overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>
+                        {card.name}
                       </div>
-                    )}
+                    </div>
+                    {/* Bottom: CROMA + repeats buttons */}
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:8}}>
+                      <div style={{fontSize:8,fontWeight:700,color:"rgba(255,255,255,0.3)",letterSpacing:2}}>CROMA</div>
+                      {isOwned && onRepeat && (
+                        <div style={{display:"flex",alignItems:"center",gap:3}}>
+                          <button onClick={e=>{e.stopPropagation();onRepeat(collId,card.id,-1);}}
+                            style={{width:18,height:18,borderRadius:4,border:"none",background:"rgba(255,255,255,0.15)",
+                              color:"#fff",fontSize:13,lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>-</button>
+                          <span style={{fontSize:10,fontWeight:700,color:reps>0?"#f0c040":"rgba(255,255,255,0.4)",minWidth:10,textAlign:"center"}}>{reps||0}</span>
+                          <button onClick={e=>{e.stopPropagation();onRepeat(collId,card.id,1);}}
+                            style={{width:18,height:18,borderRadius:4,border:"none",background:"rgba(255,255,255,0.15)",
+                              color:"#fff",fontSize:13,lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>+</button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -1335,7 +1379,7 @@ function ProfileScreen({ allOwned, onBack, T }) {
         {/* Profile card */}
         <div style={{background:`linear-gradient(135deg,${T.surface},${T.surface2})`,border:`1px solid ${T.border}`,borderRadius:20,padding:24,marginBottom:20,textAlign:"center"}}>
           <div style={{width:80,height:80,borderRadius:"50%",background:`linear-gradient(135deg,#f97316,#a855f7)`,margin:"0 auto 16px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:36}}>
-            👤
+            {localStorage.getItem("croma_avatar")||"⚽"}
           </div>
           <div style={{fontWeight:800,fontSize:22,color:T.text,marginBottom:4}}>Coleccionista</div>
           <div style={{fontSize:13,color:T.textDim,marginBottom:16}}>Miembro de CROMA</div>
@@ -1371,9 +1415,90 @@ function ProfileScreen({ allOwned, onBack, T }) {
           );
         })}
 
-        <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:16,textAlign:"center",marginTop:8}}>
+        <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:16,textAlign:"center",marginTop:8,marginBottom:20}}>
           <div style={{fontSize:13,color:T.textDim,marginBottom:8}}>Sistema de usuarios próximamente</div>
           <div style={{fontSize:11,color:T.textDim,opacity:0.6}}>Podrás crear tu cuenta, sincronizar tu colección y conectar con otros coleccionistas</div>
+        </div>
+
+        {/* ICON SELECTOR */}
+        <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:20,marginBottom:16}}>
+          <div style={{fontWeight:800,fontSize:15,color:T.text,marginBottom:14}}>Icono de perfil</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10}}>
+            {["⚽","🏆","🃏","⭐","🔥","💎","🎯","🦁","🐉","👑"].map(icon=>{
+              const isSelected = (localStorage.getItem("croma_avatar")||"⚽") === icon;
+              return (
+                <div key={icon} onClick={()=>{
+                  localStorage.setItem("croma_avatar", icon);
+                  window.location.reload();
+                }}
+                  style={{width:"100%",aspectRatio:"1",borderRadius:12,
+                    background:isSelected?T.accent+"22":T.surface2,
+                    border:`2px solid ${isSelected?T.accent:T.border}`,
+                    display:"flex",alignItems:"center",justifyContent:"center",
+                    fontSize:24,cursor:"pointer",transition:"all 0.15s"}}>
+                  {icon}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* SETTINGS PANEL */}
+        <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:20,marginBottom:16}}>
+          <div style={{fontWeight:800,fontSize:15,color:T.text,marginBottom:16}}>Configuración</div>
+
+          {/* Theme toggle */}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
+            padding:"12px 0",borderBottom:`1px solid ${T.border}`}}>
+            <div>
+              <div style={{fontSize:14,fontWeight:600,color:T.text}}>Tema</div>
+              <div style={{fontSize:11,color:T.textDim}}>Modo oscuro o claro</div>
+            </div>
+            <div style={{display:"flex",gap:8}}>
+              {[["dark","🌙"],["light","☀️"]].map(([t,icon])=>(
+                <button key={t} onClick={()=>{
+                  localStorage.setItem("croma_theme",t);
+                  window.location.reload();
+                }}
+                  style={{padding:"6px 14px",borderRadius:20,border:"none",cursor:"pointer",
+                    fontSize:13,fontWeight:700,fontFamily:"Inter,sans-serif",
+                    background:localStorage.getItem("croma_theme")===t||(!localStorage.getItem("croma_theme")&&t==="dark")?T.accent:T.surface2,
+                    color:localStorage.getItem("croma_theme")===t||(!localStorage.getItem("croma_theme")&&t==="dark")?"#fff":T.textDim}}>
+                  {icon}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Cost toggle */}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
+            padding:"12px 0",borderBottom:`1px solid ${T.border}`}}>
+            <div>
+              <div style={{fontSize:14,fontWeight:600,color:T.text}}>Mostrar coste</div>
+              <div style={{fontSize:11,color:T.textDim}}>Estimación de sobres restantes</div>
+            </div>
+            <div onClick={()=>{
+              const cur = localStorage.getItem("croma_showcost")==="true";
+              localStorage.setItem("croma_showcost",(!cur).toString());
+              window.location.reload();
+            }}
+              style={{width:44,height:24,borderRadius:12,
+                background:localStorage.getItem("croma_showcost")==="true"?T.accent:T.surface2,
+                cursor:"pointer",position:"relative",transition:"background 0.2s"}}>
+              <div style={{position:"absolute",top:2,
+                left:localStorage.getItem("croma_showcost")==="true"?22:2,
+                width:20,height:20,borderRadius:"50%",background:"#fff",transition:"left 0.2s"}}/>
+            </div>
+          </div>
+
+          {/* App info */}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",paddingTop:12}}>
+            <div>
+              <div style={{fontSize:14,fontWeight:600,color:T.text}}>CROMA</div>
+              <div style={{fontSize:11,color:T.textDim}}>Versión 1.0 · Trading Cards Tracker</div>
+            </div>
+            <div style={{fontSize:11,color:T.textDim,opacity:0.5}}>v1.0</div>
+          </div>
         </div>
       </div>
     </div>
