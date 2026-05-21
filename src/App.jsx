@@ -576,6 +576,8 @@ function CromaMasterSection({ T }) {
 
 // - HOME -
 function HomeScreen({ allOwned, allRepeats, onEnter, onNav, T, theme, toggleTheme, showCost, toggleCost }) {
+  const [collType, setCollType] = useState("cards");
+  const visibleColls = Object.values(COLLECTIONS).filter(c => c.type === collType);
   const laligaCards = COLLECTIONS.laliga.cards;
   const mundialCards = COLLECTIONS.mundial.cards;
   const laligaOwned = allOwned.laliga||{};
