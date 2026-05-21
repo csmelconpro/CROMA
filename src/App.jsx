@@ -137,7 +137,18 @@ function Shield({ team, size = 32 }) {
     "Uzbekistán":       <D><Base fill="#1EB53A"/><HStripe fill="#fff" y1={0.35} h={0.08}/><HStripe fill="#CE1126" y1={0.43} h={0.22}/><HStripe fill="#fff" y1={0.65} h={0.08}/><T text="UZB"/></D>,
   };
 
-  const fallback = (
+    "República Checa":  <D><Base fill="#D7141A"/><Half fill="#fff" right={false}/><TopBar fill="#11457E" h={0.35}/><T text="CZE" fill="#D7141A"/></D>,
+    "Bosnia-Herzegovina":<D><Base fill="#002395"/><path d={`M${s*.2},${s*.08} L${s*.8},${s*.95}`} stroke="#FFCC00" strokeWidth={s*.12} clipPath={`url(#${c})`}/><T text="BIH" fill="#FFCC00"/></D>,
+    "R.D. Congo":       <D><Base fill="#007FFF"/><HStripe fill="#F7D618" y1={0.43} h={0.14}/><HStripe fill="#CE1126" y1={0.57} h={0.43}/><T text="COD" fill="#007FFF"/></D>,
+    "Turquía":          <D><Base fill="#E30A17"/><circle cx={s*.42} cy={s*.52} r={s*.22} fill="#fff" clipPath={`url(#${c})`}/><circle cx={s*.48} cy={s*.52} r={s*.16} fill="#E30A17" clipPath={`url(#${c})`}/><T text="TUR" y={0.75}/></D>,
+    "Iraq":             <D><Base fill="#CE1126"/><HStripe fill="#fff" y1={0.37} h={0.26}/><HStripe fill="#000" y1={0.63} h={0.37}/><T text="IRQ" fill="#CE1126"/></D>,
+    "Suecia":           <D><Base fill="#006AA7"/><HStripe fill="#FECC02" y1={0.43} h={0.14}/><VStripe fill="#FECC02" x1={0.35} w={0.14}/><T text="SWE" fill="#FECC02" y={0.74}/></D>,
+    "Dinamarca":        <D><Base fill="#C60C30"/><HStripe fill="#fff" y1={0.43} h={0.14}/><VStripe fill="#fff" x1={0.35} w={0.14}/><T text="DEN" y={0.74}/></D>,
+    "Italia":           <D><Base fill="#009246"/><VStripe fill="#fff" x1={0.33} w={0.34}/><Half fill="#CE2B37"/><T text="ITA" fill="#fff"/></D>,
+    "Jamaica":          <D><Base fill="#000"/><path d={`M${s*.1},${s*.08} L${s*.9},${s*.95} M${s*.9},${s*.08} L${s*.1},${s*.95}`} stroke="#FED100" strokeWidth={s*.16} clipPath={`url(#${c})`}/><T text="JAM" fill="#FED100"/></D>,
+    "Polonia":          <D><Base fill="#fff"/><HStripe fill="#DC143C" y1={0.5} h={0.5}/><T text="POL" fill="#DC143C" y={0.74}/></D>,
+
+    const fallback = (
     <svg width={s} height={s} viewBox={`0 0 ${s} ${s}`} style={{flexShrink:0}}>
       <defs><clipPath id={c}><path d={sh}/></clipPath></defs>
       <path d={sh} fill="#333"/>
@@ -1128,7 +1139,7 @@ const NATIONAL = {
   "Senegal":{"p":"#00853F","s":"#FDEF42"},"Sudáfrica":{"p":"#007A4D","s":"#FFB81C"},
   "Suecia":{"p":"#006AA7","s":"#FECC02"},"Suiza":{"p":"#FF0000","s":"#ffffff"},
   "Turquía":{"p":"#E30A17","s":"#ffffff"},"Túnez":{"p":"#E70013","s":"#ffffff"},
-  "Uruguay":{"p":"#5EB6E4","s":"#ffffff"},"Uzbekistán":{"p":"#1EB53A","s":"#ffffff"},
+  "Uruguay":{"p":"#5EB6E4","s":"#ffffff"},"Uzbekistán":{"p":"#1EB53A","s":"#ffffff"},"República Checa":{"p":"#D7141A","s":"#ffffff"},"Bosnia-Herzegovina":{"p":"#002395","s":"#FFCC00"},"R.D. Congo":{"p":"#007FFF","s":"#F7D618"},"Suecia":{"p":"#006AA7","s":"#FECC02"},
   "Bosnia-Herzegovina":{"p":"#002395","s":"#FFCD00"},"República Checa":{"p":"#D7141A","s":"#ffffff"},
   "Iraq":{"p":"#CE1126","s":"#007A3D"},"R.D. Congo":{"p":"#007FFF","s":"#F7D618"},
   "Dinamarca":{"p":"#C60C30","s":"#ffffff"},"Italia":{"p":"#009246","s":"#ffffff"},
@@ -1386,11 +1397,63 @@ function ProfileScreen({ allOwned, user, syncStatus, onSignOut, onGoAuth, onBack
       <div style={{padding:"24px 16px"}}>
         {/* Profile card */}
         <div style={{background:`linear-gradient(135deg,${T.surface},${T.surface2})`,border:`1px solid ${T.border}`,borderRadius:20,padding:24,marginBottom:20,textAlign:"center"}}>
-          <div style={{width:80,height:80,borderRadius:"50%",background:`linear-gradient(135deg,#f97316,#a855f7)`,margin:"0 auto 16px",display:"flex",alignItems:"center",justifyContent:"center",fontSize:36}}>
-            {localStorage.getItem("croma_avatar")||"⚽"}
+              {/* Profile photo */}
+          <div style={{position:"relative",width:80,height:80,margin:"0 auto 16px"}}>
+            <div style={{width:80,height:80,borderRadius:"50%",
+              background:`linear-gradient(135deg,#f97316,#a855f7)`,
+              display:"flex",alignItems:"center",justifyContent:"center",
+              fontSize:36,overflow:"hidden"}}>
+              {localStorage.getItem("croma_photo")
+                ? <img src={localStorage.getItem("croma_photo")} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                : localStorage.getItem("croma_avatar")||"⚽"
+              }
+            </div>
+            <label style={{position:"absolute",bottom:0,right:0,
+              width:24,height:24,borderRadius:"50%",background:T.accent,
+              display:"flex",alignItems:"center",justifyContent:"center",
+              cursor:"pointer",fontSize:12,border:`2px solid ${T.bg}`}}>
+              📷
+              <input type="file" accept="image/*" style={{display:"none"}}
+                onChange={e=>{
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = ev => {
+                    localStorage.setItem("croma_photo", ev.target.result);
+                    window.location.reload();
+                  };
+                  reader.readAsDataURL(file);
+                }}/>
+            </label>
           </div>
-          <div style={{fontWeight:800,fontSize:22,color:T.text,marginBottom:4}}>Coleccionista</div>
-          <div style={{fontSize:13,color:T.textDim,marginBottom:16}}>Miembro de CROMA</div>
+          <div style={{fontWeight:800,fontSize:22,color:T.text,marginBottom:4}}>
+            {user?.user_metadata?.username || localStorage.getItem("croma_username") || "Coleccionista"}
+          </div>
+          <div style={{fontSize:13,color:T.textDim,marginBottom:8}}>Miembro de CROMA</div>
+          {/* Username editor */}
+          <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:12}}>
+            <input
+              defaultValue={user?.user_metadata?.username || localStorage.getItem("croma_username") || ""}
+              placeholder="Tu nombre de usuario"
+              onBlur={e=>{
+                const val = e.target.value.trim();
+                if (val) {
+                  localStorage.setItem("croma_username", val);
+                }
+              }}
+              style={{flex:1,background:T.surface2,border:`1px solid ${T.border}`,
+                borderRadius:8,padding:"6px 10px",color:T.text,fontSize:13,
+                fontFamily:"'Inter',sans-serif",outline:"none"}}
+            />
+            <button onClick={()=>{
+              const val = localStorage.getItem("croma_username");
+              if (val) window.location.reload();
+            }}
+              style={{padding:"6px 12px",borderRadius:8,background:T.accent,
+                border:"none",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+              Guardar
+            </button>
+          </div>
           <div style={{display:"flex",justifyContent:"center",gap:32}}>
             <div style={{textAlign:"center"}}>
               <div style={{fontWeight:800,fontSize:24,color:T.accent}}>{totalOwned}</div>
@@ -1655,7 +1718,12 @@ function CollectionGridScreen({ collId, ownedMap, repeatsMap, onSelectGroup, onB
       } else if (collId === 'mundialst') {
         if (c.section === 'Selecciones') {
           groupKey = c.team;
-          groupSection = 'Selecciones';
+          groupSection = c.group || 'Selecciones';
+        } else if (c.section === 'Album') {
+          groupKey = 'FWC'; groupSection = 'FWC';
+        } else if (c.section === 'Extra Stickers') {
+          groupKey = c.player || c.name;
+          groupSection = 'Extra Stickers';
         } else {
           groupKey = c.section;
           groupSection = c.section;
@@ -1687,7 +1755,7 @@ function CollectionGridScreen({ collId, ownedMap, repeatsMap, onSelectGroup, onB
   const sectionOrder =
     collId === 'laliga'     ? ['Regulares','Actualización Plus','Especiales','Coleccionables','Edición Limitada'] :
     collId === 'megacracks' ? ['Elite','Equipos','Vértigo','Zona VIP','Master Rookie','Flashback','Nuevos Fichajes','3a Edicion','Parallels','Inserts','Autografos','Especiales','Cards Indice'] :
-    collId === 'mundialst'  ? ['Album','Selecciones','Historia Mundial','Extra Stickers','Coca Cola'] :
+    collId === 'mundialst'  ? ['FWC','Grupo A','Grupo B','Grupo C','Grupo D','Grupo E','Grupo F','Grupo G','Grupo H','Grupo I','Grupo J','Grupo K','Grupo L','Historia Mundial','Extra Stickers'] :
     ['Golden Baller','Selecciones','Contenders','Especiales','Coleccionables'];
 
   const grouped = useMemo(() => {
@@ -2346,23 +2414,7 @@ export default function App() {
   useEffect(() => { allRepeatsRef.current = allRepeats; }, [allRepeats]);
 
   // Auth session listener
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setAuthLoading(false);
-      if (session?.user) setTimeout(() => loadFromCloud(), 800);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-      if (event === 'SIGNED_IN') {
-        // Load from cloud first, then sync local to cloud
-        setTimeout(() => loadFromCloud(), 600);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Upload all owned/repeated cards to Supabase in batches of 100 (local-first, silent)
   const loadFromCloud = async () => {
     const { data: { user: u } } = await supabase.auth.getUser();
     if (!u) return;
@@ -2405,6 +2457,23 @@ export default function App() {
     }
   };
 
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+      if (session?.user) setTimeout(() => loadFromCloud(), 800);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      if (event === 'SIGNED_IN') {
+        // Load from cloud first, then sync local to cloud
+        setTimeout(() => loadFromCloud(), 600);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Upload all owned/repeated cards to Supabase in batches of 100 (local-first, silent)
   const syncToCloud = async (ownedSnap, repeatsSnap) => {
     const { data: { user: u } } = await supabase.auth.getUser();
     if (!u) return;
