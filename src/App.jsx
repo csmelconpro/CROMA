@@ -1,8 +1,9 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { LALIGA_CARDS } from './data/laliga.js';
 import { MUNDIAL_CARDS } from './data/mundial.js';
 import { MEGACRACKS_CARDS } from './data/megacracks.js';
 import { MUNDIAL_STICKERS } from './data/mundial_stickers.js';
+import { supabase } from './supabase.js';
 
 // - THEMES -
 const THEMES = {
@@ -1366,7 +1367,7 @@ function StatsScreen({ allOwned, onBack, T }) {
 }
 
 // - PROFILE SCREEN -
-function ProfileScreen({ allOwned, onBack, T }) {
+function ProfileScreen({ allOwned, user, syncStatus, onSignOut, onGoAuth, onBack, T }) {
   const totalCards = Object.values(COLLECTIONS).reduce((a,c)=>a+c.cards.length,0);
   const totalOwned = Object.values(COLLECTIONS).reduce((a,c)=>{
     const om = allOwned[c.id]||{};
@@ -1422,10 +1423,48 @@ function ProfileScreen({ allOwned, onBack, T }) {
           );
         })}
 
-        <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:16,textAlign:"center",marginTop:8,marginBottom:20}}>
-          <div style={{fontSize:13,color:T.textDim,marginBottom:8}}>Sistema de usuarios próximamente</div>
-          <div style={{fontSize:11,color:T.textDim,opacity:0.6}}>Podrás crear tu cuenta, sincronizar tu colección y conectar con otros coleccionistas</div>
-        </div>
+        {/* Auth panel */}
+        {user ? (
+          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:20,marginTop:8,marginBottom:16}}>
+            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
+              <div style={{width:40,height:40,borderRadius:"50%",background:`linear-gradient(135deg,${T.accent},#a855f7)`,
+                display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>☁️</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:13,fontWeight:700,color:T.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.email}</div>
+                <div style={{fontSize:11,color:
+                  syncStatus==='synced'?T.green:
+                  syncStatus==='syncing'?"#f0c040":
+                  syncStatus==='error'?T.red:T.textDim,marginTop:2}}>
+                  {syncStatus==='synced'?'Sincronizado':
+                   syncStatus==='syncing'?'Sincronizando...':
+                   syncStatus==='error'?'Error de sync':
+                   'Sin conexion'}
+                </div>
+              </div>
+              {syncStatus==='synced' && <div style={{fontSize:16,color:T.green}}>✓</div>}
+              {syncStatus==='syncing' && <div style={{fontSize:14,color:"#f0c040",animation:"spin 1s linear infinite"}}>⟳</div>}
+            </div>
+            <button onClick={onSignOut}
+              style={{width:"100%",padding:"10px",borderRadius:10,border:`1px solid ${T.border}`,
+                background:"transparent",color:T.red,fontFamily:"'Inter',sans-serif",
+                fontWeight:700,fontSize:14,cursor:"pointer"}}>
+              Cerrar sesion
+            </button>
+          </div>
+        ) : (
+          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:20,marginTop:8,marginBottom:16}}>
+            <div style={{fontSize:13,fontWeight:700,color:T.text,marginBottom:6}}>Backup en la nube</div>
+            <div style={{fontSize:12,color:T.textDim,marginBottom:16,lineHeight:1.5}}>
+              Crea una cuenta para guardar tu coleccion en la nube y acceder desde cualquier dispositivo.
+            </div>
+            <button onClick={onGoAuth}
+              style={{width:"100%",padding:"12px",borderRadius:12,border:"none",
+                background:T.accent,color:"#fff",fontFamily:"'Inter',sans-serif",
+                fontWeight:800,fontSize:15,cursor:"pointer"}}>
+              Crear cuenta / Iniciar sesion
+            </button>
+          </div>
+        )}
 
         {/* ICON SELECTOR */}
         <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:20,marginBottom:16}}>
@@ -2164,6 +2203,120 @@ function NavBar({ screen, onNav, T }) {
   );
 }
 
+// - AUTH SCREEN -
+function AuthScreen({ onBack, T }) {
+  const [tab, setTab] = useState('signin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleSubmit = async () => {
+    setError('');
+    setSuccess('');
+    if (!email.trim() || !password.trim()) { setError('Rellena todos los campos'); return; }
+    setLoading(true);
+    try {
+      if (tab === 'signin') {
+        const { error: e } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (e) throw e;
+        onBack();
+      } else {
+        const { error: e } = await supabase.auth.signUp({ email: email.trim(), password });
+        if (e) throw e;
+        setSuccess('Cuenta creada. Revisa tu email para confirmar la cuenta.');
+      }
+    } catch (e) {
+      setError(e.message || 'Error al conectar');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{minHeight:'100vh',background:T.bg,color:T.text,fontFamily:"'Inter',sans-serif",paddingBottom:40}}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap'); input:focus{outline:none;border-color:${T.accent}!important;}`}</style>
+      <div style={{padding:'max(56px,env(safe-area-inset-top)) 16px 16px',borderBottom:`1px solid ${T.border}`}}>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <button onClick={onBack} style={{background:'none',border:'none',color:T.text,fontSize:22,cursor:'pointer'}}>&#8592;</button>
+          <div style={{fontWeight:800,fontSize:22,color:T.text}}>Cuenta CROMA</div>
+        </div>
+      </div>
+
+      <div style={{padding:'24px 16px',maxWidth:420,margin:'0 auto'}}>
+        {/* Tabs */}
+        <div style={{display:'flex',background:T.surface2,borderRadius:12,padding:4,marginBottom:24}}>
+          {[['signin','Iniciar sesion'],['signup','Registrarse']].map(([t,l])=>(
+            <button key={t} onClick={()=>{setTab(t);setError('');setSuccess('');}}
+              style={{flex:1,padding:'10px',borderRadius:9,border:'none',fontFamily:"'Inter',sans-serif",
+                fontWeight:700,fontSize:14,cursor:'pointer',transition:'all 0.15s',
+                background:tab===t?T.surface:'transparent',
+                color:tab===t?T.text:T.textDim,
+                boxShadow:tab===t?`0 1px 4px rgba(0,0,0,0.15)`:'none'}}>
+              {l}
+            </button>
+          ))}
+        </div>
+
+        {/* Info */}
+        <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,
+          padding:'12px 16px',marginBottom:24,display:'flex',gap:10,alignItems:'flex-start'}}>
+          <div style={{fontSize:18,flexShrink:0}}>☁️</div>
+          <div style={{fontSize:12,color:T.textDim,lineHeight:1.6}}>
+            Tu progreso se guarda en tu dispositivo. Con cuenta tendras backup en la nube y acceso desde cualquier dispositivo.
+          </div>
+        </div>
+
+        {/* Email */}
+        <div style={{marginBottom:14}}>
+          <label style={{fontSize:12,fontWeight:600,color:T.textDim,display:'block',marginBottom:6}}>Email</label>
+          <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
+            placeholder="tu@email.com"
+            onKeyDown={e=>e.key==='Enter'&&handleSubmit()}
+            style={{width:'100%',boxSizing:'border-box',background:T.surface,
+              border:`1px solid ${T.border}`,borderRadius:10,padding:'12px 14px',
+              color:T.text,fontSize:15,fontFamily:"'Inter',sans-serif"}}/>
+        </div>
+
+        {/* Password */}
+        <div style={{marginBottom:24}}>
+          <label style={{fontSize:12,fontWeight:600,color:T.textDim,display:'block',marginBottom:6}}>Contrasena</label>
+          <input type="password" value={password} onChange={e=>setPassword(e.target.value)}
+            placeholder="Minimo 6 caracteres"
+            onKeyDown={e=>e.key==='Enter'&&handleSubmit()}
+            style={{width:'100%',boxSizing:'border-box',background:T.surface,
+              border:`1px solid ${T.border}`,borderRadius:10,padding:'12px 14px',
+              color:T.text,fontSize:15,fontFamily:"'Inter',sans-serif"}}/>
+        </div>
+
+        {/* Error / Success */}
+        {error && (
+          <div style={{background:'rgba(232,53,58,0.1)',border:'1px solid rgba(232,53,58,0.3)',
+            borderRadius:10,padding:'10px 14px',marginBottom:16,fontSize:13,color:T.red}}>
+            {error}
+          </div>
+        )}
+        {success && (
+          <div style={{background:'rgba(34,197,94,0.1)',border:'1px solid rgba(34,197,94,0.3)',
+            borderRadius:10,padding:'10px 14px',marginBottom:16,fontSize:13,color:T.green}}>
+            {success}
+          </div>
+        )}
+
+        {/* Submit */}
+        <button onClick={handleSubmit} disabled={loading}
+          style={{width:'100%',padding:'14px',borderRadius:12,border:'none',
+            background:loading?T.surface2:T.accent,color:loading?T.textDim:'#fff',
+            fontFamily:"'Inter',sans-serif",fontWeight:800,fontSize:16,
+            cursor:loading?'not-allowed':'pointer',transition:'all 0.15s',opacity:loading?0.7:1}}>
+          {loading ? 'Conectando...' : tab==='signin' ? 'Iniciar sesion' : 'Crear cuenta'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // - APP ROOT -
 export default function App() {
   const [screen, setScreen] = useState("home");
@@ -2180,14 +2333,96 @@ export default function App() {
   const [allOwned, setAllOwned] = useState(()=>({laliga:LS.loadOwned("laliga"),mundial:LS.loadOwned("mundial"),megacracks:LS.loadOwned("megacracks"),mundialst:LS.loadOwned("mundialst")}));
   const [allRepeats, setAllRepeats] = useState(()=>({laliga:LS.loadRepeats("laliga"),mundial:LS.loadRepeats("mundial"),megacracks:LS.loadRepeats("megacracks"),mundialst:LS.loadRepeats("mundialst")}));
 
+  // -- Auth + sync state --
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [syncStatus, setSyncStatus] = useState('idle'); // 'idle' | 'syncing' | 'synced' | 'error'
+
+  // Refs to latest state for async callbacks
+  const syncTimerRef = useRef(null);
+  const allOwnedRef = useRef(allOwned);
+  const allRepeatsRef = useRef(allRepeats);
+  useEffect(() => { allOwnedRef.current = allOwned; }, [allOwned]);
+  useEffect(() => { allRepeatsRef.current = allRepeats; }, [allRepeats]);
+
+  // Auth session listener
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      if (event === 'SIGNED_IN') {
+        // Slight delay so refs have settled after state updates
+        setTimeout(() => syncToCloud(allOwnedRef.current, allRepeatsRef.current), 600);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Upload all owned/repeated cards to Supabase in batches of 100 (local-first, silent)
+  const syncToCloud = async (ownedSnap, repeatsSnap) => {
+    const { data: { user: u } } = await supabase.auth.getUser();
+    if (!u) return;
+    setSyncStatus('syncing');
+    try {
+      const rows = [];
+      Object.entries(COLLECTIONS).forEach(([collId, coll]) => {
+        const om = ownedSnap[collId] || {};
+        const rm = repeatsSnap[collId] || {};
+        coll.cards.forEach(card => {
+          const isOwned = om[card.id] !== undefined ? om[card.id] : card.owned;
+          const reps = rm[card.id] || 0;
+          if (isOwned || reps > 0) {
+            rows.push({
+              user_id: u.id,
+              coll_id: collId,
+              card_id: card.id,
+              owned: !!isOwned,
+              repeats: reps,
+              updated_at: new Date().toISOString(),
+            });
+          }
+        });
+      });
+      for (let i = 0; i < rows.length; i += 100) {
+        const { error } = await supabase
+          .from('collection_progress')
+          .upsert(rows.slice(i, i + 100), { onConflict: 'user_id,coll_id,card_id' });
+        if (error) throw error;
+      }
+      setSyncStatus('synced');
+    } catch (e) {
+      console.warn('[croma] sync error', e.message);
+      setSyncStatus('error');
+    }
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setSyncStatus('idle');
+  };
+
   const toggleTheme = () => { const n=theme==='dark'?'light':'dark'; setTheme(n); LS.saveTheme(n); };
   const toggleCost  = () => { const n=!showCost; setShowCost(n); LS.savShowCost(n); };
 
   const handleToggle = (collId, cardId, val) => {
-    setAllOwned(prev => { const u={...prev[collId],[cardId]:val}; LS.saveAll(collId,u,allRepeats[collId]||{}); return {...prev,[collId]:u}; });
+    setAllOwned(prev => { const u={...prev[collId],[cardId]:val}; LS.saveAll(collId,u,allRepeatsRef.current[collId]||{}); return {...prev,[collId]:u}; });
+    if (val) {
+      // Sync immediately when marking a card as owned
+      const snap = {...allOwnedRef.current, [collId]: {...(allOwnedRef.current[collId]||{}), [cardId]: true}};
+      syncToCloud(snap, allRepeatsRef.current);
+    }
   };
   const handleRepeat = (collId, cardId, delta) => {
-    setAllRepeats(prev => { const cur=prev[collId]||{}; const nv=Math.max(0,(cur[cardId]||0)+delta); const u={...cur,[cardId]:nv}; LS.saveAll(collId,allOwned[collId]||{},u); return {...prev,[collId]:u}; });
+    setAllRepeats(prev => { const cur=prev[collId]||{}; const nv=Math.max(0,(cur[cardId]||0)+delta); const u={...cur,[cardId]:nv}; LS.saveAll(collId,allOwnedRef.current[collId]||{},u); return {...prev,[collId]:u}; });
+    // Debounced sync (2s) for repeat changes
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(() => {
+      syncToCloud(allOwnedRef.current, allRepeatsRef.current);
+    }, 2000);
   };
 
   const handleSetMode = (collId, mode) => {
@@ -2253,9 +2488,12 @@ export default function App() {
   const screens = {
     stats: <StatsScreen allOwned={allOwned} onBack={()=>setScreen("home")} T={T}/>,
     repeats: <RepeatsScreen allOwned={allOwned} allRepeats={allRepeats} onBack={()=>setScreen("home")} T={T}/>,
-    profile: <ProfileScreen allOwned={allOwned} onBack={()=>setScreen("home")} T={T}/>,
+    profile: <ProfileScreen allOwned={allOwned} user={user} syncStatus={syncStatus}
+      onSignOut={handleSignOut} onGoAuth={()=>setScreen("auth")}
+      onBack={()=>setScreen("home")} T={T}/>,
     achievements: <AchievementsScreen allOwned={allOwned} onBack={()=>setScreen("home")} T={T}/>,
     search: <SearchScreen allOwned={allOwned} onTeamClick={handleSearchTeamClick} onBack={()=>setScreen("home")} T={T}/>,
+    auth: <AuthScreen onBack={()=>setScreen("profile")} T={T}/>,
   };
 
   if (screen==="collection" && activeCollId)
