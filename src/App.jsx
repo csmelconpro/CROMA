@@ -2168,6 +2168,8 @@ export default function App() {
   const [activeCollId, setActiveCollId] = useState(null);
   const [activeTeamName, setActiveTeamName] = useState(null);
   const [teamBackScreen, setTeamBackScreen] = useState("collection");
+  const [activeGroup, setActiveGroup] = useState(null);
+  const [activeGroupSection, setActiveGroupSection] = useState(null);
   const [theme, setTheme] = useState(LS.loadTheme);
   const [showCost, setShowCost] = useState(LS.loadShowCost);
   const T = THEMES[theme];
@@ -2227,6 +2229,14 @@ export default function App() {
     setScreen("team");
   };
 
+  const handleSelectGroup = (group, section) => {
+    setActiveGroup(group);
+    setActiveGroupSection(section);
+    setActiveTeamName(group);
+    setTeamBackScreen("collection");
+    setScreen("team");
+  };
+
   if (screen==="team"&&activeCollId&&activeTeamName)
     return <><TeamScreen team={activeTeamName} collId={activeCollId}
       ownedMap={allOwned[activeCollId]||{}}
@@ -2237,19 +2247,6 @@ export default function App() {
       onLongPress={handleCardLongPress}
       onBack={()=>setScreen(teamBackScreen||"collection")}
       T={T}/></>;
-
-
-
-  const [activeGroup, setActiveGroup] = useState(null);
-  const [activeGroupSection, setActiveGroupSection] = useState(null);
-
-  const handleSelectGroup = (group, section) => {
-    setActiveGroup(group);
-    setActiveGroupSection(section);
-    setActiveTeamName(group);
-    setTeamBackScreen("collection");
-    setScreen("team");
-  };
 
   const screens = {
     stats: <StatsScreen allOwned={allOwned} onBack={()=>setScreen("home")} T={T}/>,
