@@ -1,8 +1,6 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import { LALIGA_CARDS } from './data/laliga.js';
 import { MUNDIAL_CARDS } from './data/mundial.js';
-import { MEGACRACKS_CARDS } from './data/megacracks.js';
-import { MUNDIAL_STICKERS } from './data/mundial_stickers.js';
 
 // - THEMES -
 const THEMES = {
@@ -33,17 +31,6 @@ const TEAMS = {
   "Valencia CF":        {p:"#f5a623",s:"#1a1a1a",abbr:"VAL",shape:"plain"},
   "Villarreal CF":      {p:"#f5c500",s:"#1a1a1a",abbr:"VIL",shape:"plain"},
 };
-
-const MC_ALIASES = {
-  "Alavés":"Deportivo Alavés","Athletic":"Athletic Club",
-  "Atlético":"Atlético de Madrid","Barcelona":"FC Barcelona",
-  "Betis":"Real Betis","Celta":"RC Celta","Elche":"Elche CF",
-  "Espanyol":"RCD Espanyol","Getafe":"Getafe CF","Girona":"Girona FC",
-  "Levante":"Levante UD","Mallorca":"RCD Mallorca","Osasuna":"CA Osasuna",
-  "Oviedo":"Real Oviedo","Rayo":"Rayo Vallecano","Sociedad":"Real Sociedad",
-  "Sevilla":"Sevilla FC","Valencia":"Valencia CF","Villarreal":"Villarreal CF",
-};
-function resolveTeam(name) { return MC_ALIASES[name]||name; }
 
 // - SHIELDS (Liga + Mundial) -
 function Shield({ team, size = 32 }) {
@@ -228,56 +215,6 @@ function MundialIcon({ size = 46 }) {
   );
 }
 
-function MegacracksIcon({ size = 46 }) {
-  const s = size;
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none">
-      <defs>
-        <linearGradient id="mcBg" x1="0" y1="0" x2={s} y2={s} gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#1a1a1a"/>
-          <stop offset="100%" stopColor="#2d2d2d"/>
-        </linearGradient>
-      </defs>
-      <rect width={size} height={size} rx={size*0.22} fill="url(#mcBg)"/>
-      <rect x={s*.12} y={s*.18} width={s*.76} height={s*.64} rx={s*.06} fill="none" stroke="#f0c040" strokeWidth={s*.04}/>
-      <rect x={s*.22} y={s*.28} width={s*.56} height={s*.44} rx={s*.04} fill="#f0c04022"/>
-      <text x={s*.5} y={s*.56} textAnchor="middle" dominantBaseline="middle"
-        fontSize={s*.26} fontWeight="900" fill="#f0c040" style={{fontFamily:"Inter,sans-serif"}}>MC</text>
-      <circle cx={s*.5} cy={s*.13} r={s*.05} fill="#f0c040"/>
-    </svg>
-  );
-}
-
-function MundialStickersIcon({ size = 46 }) {
-  const s = size;
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none">
-      <defs>
-        <linearGradient id="msBg" x1="0" y1="0" x2={s} y2={s} gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#0a1628"/><stop offset="100%" stopColor="#0d2a4a"/>
-        </linearGradient>
-      </defs>
-      <rect width={size} height={size} rx={size*0.22} fill="url(#msBg)"/>
-      <rect x={s*.14} y={s*.16} width={s*.72} height={s*.58} rx={s*.05} fill="none" stroke="#38bdf8" strokeWidth={s*.04}/>
-      <line x1={s*.14} y1={s*.42} x2={s*.86} y2={s*.42} stroke="#38bdf8" strokeWidth={s*.03} opacity="0.4"/>
-      <circle cx={s*.36} cy={s*.29} r={s*.09} fill="#38bdf822"/>
-      <circle cx={s*.36} cy={s*.29} r={s*.06} fill="#38bdf8"/>
-      <rect x={s*.52} y={s*.22} width={s*.26} height={s*.04} rx={s*.02} fill="#38bdf8" opacity="0.7"/>
-      <rect x={s*.52} y={s*.32} width={s*.18} height={s*.04} rx={s*.02} fill="#38bdf8" opacity="0.4"/>
-      <text x={s*.5} y={s*.73} textAnchor="middle" dominantBaseline="middle"
-        fontSize={s*.13} fontWeight="800" fill="#38bdf8" style={{fontFamily:"Inter,sans-serif"}}>STICKERS</text>
-    </svg>
-  );
-}
-
-function CollectionIcon({ collId, size = 46 }) {
-  if (collId === "laliga") return <LaLigaIcon size={size}/>;
-  if (collId === "mundial") return <MundialIcon size={size}/>;
-  if (collId === "megacracks") return <MegacracksIcon size={size}/>;
-  if (collId === "mundialst") return <MundialStickersIcon size={size}/>;
-  return <LaLigaIcon size={size}/>;
-}
-
 function TapCard({ onTap, onLongPress, style, children }) {
   const timer = useRef(null);
   const fired = useRef(false);
@@ -323,10 +260,8 @@ function ProgressRing({ pct, size=60, stroke=4, color="#f97316" }) {
 
 // - COLLECTIONS -
 const COLLECTIONS = {
-  laliga:    { id:"laliga",    name:"La Liga 2025-26",        color:"#f97316", sub:"Trading Cards", cards: LALIGA_CARDS,     pricePerPack: 1.0, cardsPerPack: 6, type:"cards"    },
-  mundial:   { id:"mundial",   name:"Mundial 2026 Adrenalyn", color:"#4ade80", sub:"Trading Cards", cards: MUNDIAL_CARDS,    pricePerPack: 2.0, cardsPerPack: 8, type:"cards"    },
-  megacracks:{ id:"megacracks",name:"Megacracks 2025-26",    color:"#f0c040", sub:"Trading Cards", cards: MEGACRACKS_CARDS, pricePerPack: 1.0, cardsPerPack: 6, type:"cards"    },
-  mundialst: { id:"mundialst", name:"Mundial 2026 Stickers",  color:"#38bdf8", sub:"Sticker Album", cards: MUNDIAL_STICKERS, pricePerPack: 1.0, cardsPerPack: 5, type:"stickers" },
+  laliga:  { id:"laliga",  name:"La Liga 2025-26", color:"#f97316", sub:"Trading Cards", cards: LALIGA_CARDS,  pricePerPack: 1.0, cardsPerPack: 6 },
+  mundial: { id:"mundial", name:"Mundial 2026",     color:"#4ade80", sub:"Trading Cards", cards: MUNDIAL_CARDS, pricePerPack: 1.0, cardsPerPack: 6 },
 };
 
 
@@ -360,8 +295,6 @@ const LS = {
   saveTheme:  t => { try { localStorage.setItem('croma_theme',t); } catch {} },
   loadShowCost: () => { try { return localStorage.getItem('croma_showcost')==='true'; } catch { return false; } },
   savShowCost:v => { try { localStorage.setItem('croma_showcost',v?'true':'false'); } catch {} },
-  loadMode:  id  => { try { return localStorage.getItem(`croma_mode_${id}`)||null; } catch { return null; } },
-  saveMode:  (id,mode) => { try { localStorage.setItem(`croma_mode_${id}`,mode); } catch {} },
 };
 
 // - ACHIEVEMENTS -
@@ -641,10 +574,6 @@ function CromaMasterSection({ T }) {
 
 // - HOME -
 function HomeScreen({ allOwned, allRepeats, onEnter, onNav, T, theme, toggleTheme, showCost, toggleCost }) {
-  const [collType, setCollType] = useState("cards");
-  const visibleColls = Object.values(COLLECTIONS).filter(c => c.type === collType);
-
-  // Team stats only from laliga + mundial Adrenalyn (for the "Casi/Lejos" widgets)
   const laligaCards = COLLECTIONS.laliga.cards;
   const mundialCards = COLLECTIONS.mundial.cards;
   const laligaOwned = allOwned.laliga||{};
@@ -652,6 +581,7 @@ function HomeScreen({ allOwned, allRepeats, onEnter, onNav, T, theme, toggleThem
   const laligaPct = getPct(laligaCards, laligaOwned);
   const mundialPct = getPct(mundialCards, mundialOwned);
 
+  // Team stats for both collections
   const buildStats = (cards, ownedMap, filterSections) => {
     const s = {};
     cards.filter(c => filterSections.includes(c.section) && c.team && c.team !== "Contenders").forEach(c => {
@@ -662,9 +592,15 @@ function HomeScreen({ allOwned, allRepeats, onEnter, onNav, T, theme, toggleThem
     return s;
   };
 
-  const laligaStats = buildStats(laligaCards, laligaOwned, ["Regulares"]);
-  const mundialStats = buildStats(mundialCards, mundialOwned, ["Selecciones"]);
-  const allStats = {...laligaStats, ...mundialStats};
+  // Filter stats by active tab
+  const laligaStats = collType === "cards" ? buildStats(laligaCards, laligaOwned, ["Regulares"]) : {};
+  const mundialStats = collType === "cards" ? buildStats(mundialCards, mundialOwned, ["Selecciones"]) : {};
+  const stickersStats = collType === "stickers" ? buildStats(
+    COLLECTIONS.mundialst.cards,
+    allOwned.mundialst||{},
+    ["Selecciones"]
+  ) : {};
+  const allStats = collType === "cards" ? {...laligaStats, ...mundialStats} : {...stickersStats};
 
   const almostDone = Object.entries(allStats)
     .map(([t,s])=>({team:t,missing:s.total-s.owned,pct:Math.round(s.owned/s.total*100)}))
@@ -674,63 +610,48 @@ function HomeScreen({ allOwned, allRepeats, onEnter, onNav, T, theme, toggleThem
     .map(([t,s])=>({team:t,missing:s.total-s.owned,pct:Math.round(s.owned/s.total*100)}))
     .filter(x=>x.missing>0).sort((a,b)=>b.missing-a.missing).slice(0,5);
 
+  // Recent cards (laliga only for now)
   const recentIds = Object.entries(laligaOwned).filter(([,v])=>v).map(([k])=>parseInt(k)).slice(-4).reverse();
   const recentCards = recentIds.map(id=>laligaCards.find(c=>c.id===id)).filter(Boolean);
 
+  // Achievements earned
   const earnedAchievements = [
     ...ACHIEVEMENTS.laliga.filter(a => laligaPct >= a.threshold),
     ...ACHIEVEMENTS.mundial.filter(a => mundialPct >= a.threshold),
   ];
 
-  const calcMinCost = (missing, pricePerPack, cardsPerPack) =>
-    Math.ceil(missing / cardsPerPack) * pricePerPack;
-  const calcRealisticCost = (missing, total, pricePerPack, cardsPerPack) => {
-    let cost = 0;
-    for (let i = 1; i <= missing; i++) cost += (total / (i * cardsPerPack)) * pricePerPack;
-    return Math.round(cost);
-  };
+  // Cost estimate
+  const laligaMissing = laligaCards.filter(c => !(laligaOwned[c.id]!==undefined ? laligaOwned[c.id] : c.owned)).length;
+  const mundialMissing = mundialCards.filter(c => !(mundialOwned[c.id]!==undefined ? mundialOwned[c.id] : c.owned)).length;
+  const estPacksLaliga = Math.ceil(laligaMissing / COLLECTIONS.laliga.cardsPerPack * 2.5);
+  const estPacksMundial = Math.ceil(mundialMissing / COLLECTIONS.mundial.cardsPerPack * 2.5);
+  const estCostLaliga = (estPacksLaliga * COLLECTIONS.laliga.pricePerPack).toFixed(0);
+  const estCostMundial = (estPacksMundial * COLLECTIONS.mundial.pricePerPack).toFixed(0);
 
   return (
     <div style={{minHeight:"100vh",background:T.bg,color:T.text,paddingBottom:80,fontFamily:"'Inter',sans-serif"}}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');`}</style>
 
       {/* HEADER */}
-      <div style={{padding:"max(56px,env(safe-area-inset-top)) 20px 32px",display:"flex",flexDirection:"column",alignItems:"center"}}>
+      <div style={{padding:"56px 20px 32px",display:"flex",flexDirection:"column",alignItems:"center"}}>
         <CromaLogo height={120} color={T.logoColor}/>
       </div>
 
       <div style={{padding:"0 16px"}}>
         {/* COLLECTIONS */}
-        <div style={{height:1,background:T.border,marginBottom:16}}/>
-
-        {/* Cards / Stickers toggle */}
-        <div style={{display:"flex",gap:8,marginBottom:16}}>
-          {[["cards","🃏 Cartas"],["stickers","🏷️ Cromos"]].map(([type,label])=>(
-            <button key={type} onClick={()=>setCollType(type)}
-              style={{flex:1,padding:"8px 0",borderRadius:20,fontSize:13,fontWeight:700,cursor:"pointer",border:"none",fontFamily:"'Inter',sans-serif",
-                background:collType===type?T.accent:T.surface2,color:collType===type?"#fff":T.textDim,transition:"all 0.15s"}}>
-              {label}
-            </button>
-          ))}
-        </div>
-
+        <div style={{height:1,background:T.border,marginBottom:24}}/>
         <SectionLabel T={T}>Mis Colecciones</SectionLabel>
-        {visibleColls.map(coll => {
-          const ownedMap = allOwned[coll.id]||{};
-          const pct = getPct(coll.cards, ownedMap);
+        {Object.values(COLLECTIONS).map(coll => {
+          const ownedMap = coll.id==="laliga" ? laligaOwned : mundialOwned;
+          const pct = coll.id==="laliga" ? laligaPct : mundialPct;
           const count = coll.cards.filter(c => ownedMap[c.id]!==undefined ? ownedMap[c.id] : c.owned).length;
-          const missing = coll.cards.filter(c => !(ownedMap[c.id]!==undefined ? ownedMap[c.id] : c.owned)).length;
-          const minCost = calcMinCost(missing, coll.pricePerPack, coll.cardsPerPack);
-          const realCost = calcRealisticCost(missing, coll.cards.length, coll.pricePerPack, coll.cardsPerPack);
-          const grad = coll.id==="laliga" ? "linear-gradient(90deg,#fbbf24,#dc2626)"
-            : coll.id==="mundial" ? "linear-gradient(90deg,#16a34a,#a855f7)"
-            : coll.id==="megacracks" ? "linear-gradient(90deg,#f0c040,#b45309)"
-            : "linear-gradient(90deg,#38bdf8,#0284c7)";
+          const isLL = coll.id==="laliga";
+          const grad = isLL ? "linear-gradient(90deg,#fbbf24,#dc2626)" : "linear-gradient(90deg,#16a34a,#a855f7)";
           return (
             <div key={coll.id} onClick={()=>onEnter(coll.id)}
               style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:20,marginBottom:10,cursor:"pointer"}}>
               <div style={{display:"flex",alignItems:"center",gap:14}}>
-                <CollectionIcon collId={coll.id} size={46}/>
+                {isLL ? <LaLigaIcon size={46}/> : <MundialIcon size={46}/>}
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontWeight:800,fontSize:18,color:T.text,lineHeight:1}}>{coll.name}</div>
                   <div style={{fontSize:11,color:T.textDim,marginBottom:10}}>{coll.sub}</div>
@@ -738,14 +659,8 @@ function HomeScreen({ allOwned, allRepeats, onEnter, onNav, T, theme, toggleThem
                     <div style={{height:"100%",width:`${pct}%`,background:grad,borderRadius:4,transition:"width 0.6s"}}/>
                   </div>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:5}}>
-                    <div style={{fontSize:11,color:T.textDim}}>{count} / {coll.cards.length} {coll.type==="stickers"?"cromos":"cartas"}</div>
-                    {showCost && (
-                      <div style={{display:"flex",gap:6,alignItems:"center"}}>
-                        <div style={{fontSize:10,color:T.gold}}>min {minCost}€</div>
-                        <div style={{fontSize:9,color:T.textDim}}>·</div>
-                        <div style={{fontSize:10,color:T.accent}}>~{realCost}€ real</div>
-                      </div>
-                    )}
+                    <div style={{fontSize:11,color:T.textDim}}>{count} / {coll.cards.length} cards</div>
+                    {showCost && <div style={{fontSize:10,color:T.gold}}>~{isLL?estCostLaliga:estCostMundial}€ para completar</div>}
                   </div>
                 </div>
                 <div style={{position:"relative",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
@@ -753,7 +668,7 @@ function HomeScreen({ allOwned, allRepeats, onEnter, onNav, T, theme, toggleThem
                   <div style={{position:"absolute",fontWeight:800,fontSize:14,color:coll.color}}>{pct}%</div>
                 </div>
               </div>
-              <div style={{marginTop:14,fontSize:12,color:T.textDim,borderTop:`1px solid ${T.border}`,paddingTop:12}}>Ver coleccion →</div>
+              <div style={{marginTop:14,fontSize:12,color:T.textDim,borderTop:`1px solid ${T.border}`,paddingTop:12}}>Ver colección →</div>
             </div>
           );
         })}
@@ -803,44 +718,52 @@ function HomeScreen({ allOwned, allRepeats, onEnter, onNav, T, theme, toggleThem
           </div>
         </div>
 
-        {/* AÑADIDAS RECIENTEMENTE + LOGROS en paralelo */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:24}}>
-          <div>
-            <SectionLabel T={T}>Recientes 🕐</SectionLabel>
-            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden"}}>
-              {recentCards.length===0
-                ? <div style={{padding:16,fontSize:11,color:T.textDim,textAlign:"center"}}>Sin cartas</div>
-                : recentCards.map((c,i)=>(
-                  <div key={c.id} style={{padding:"10px 12px",borderBottom:i<recentCards.length-1?`1px solid ${T.border}`:"none"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:7}}>
-                      {TEAMS[c.team] && <Shield team={c.team} size={20}/>}
-                      <div style={{flex:1,minWidth:0}}>
-                        <div style={{fontSize:11,fontWeight:700,color:T.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.name}</div>
-                        <div style={{fontSize:9,color:T.textDim}}>#{c.num}</div>
-                      </div>
+        {/* RECIENTES - ancho completo */}
+        <div style={{marginBottom:16}}>
+          <SectionLabel T={T}>Recientes 🕐</SectionLabel>
+          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden"}}>
+            {recentCards.length===0
+              ? <div style={{padding:16,fontSize:11,color:T.textDim,textAlign:"center"}}>Sin cartas recientes</div>
+              : recentCards.map((c,i)=>(
+                <div key={c.id} style={{padding:"10px 14px",borderBottom:i<recentCards.length-1?`1px solid ${T.border}`:"none"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    {TEAMS[c.team] && <Shield team={c.team} size={24}/>}
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:13,fontWeight:700,color:T.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.name}</div>
+                      <div style={{fontSize:10,color:T.textDim}}>#{c.num} · {c.team}</div>
                     </div>
                   </div>
-                ))
-              }
-            </div>
+                </div>
+              ))
+            }
           </div>
-          <div>
-            <SectionLabel T={T}>Logros 🏆</SectionLabel>
-            <div onClick={()=>onNav('achievements')} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden",cursor:"pointer"}}>
-              {earnedAchievements.length===0
-                ? <div style={{padding:16,fontSize:11,color:T.textDim,textAlign:"center"}}>¡Sigue coleccionando!</div>
-                : earnedAchievements.slice(0,4).map((a,i)=>(
-                  <div key={a.id} style={{padding:"10px 12px",borderBottom:i<Math.min(earnedAchievements.length,4)-1?`1px solid ${T.border}`:"none",display:"flex",alignItems:"center",gap:8}}>
-                    <span style={{fontSize:18}}>{a.icon}</span>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontSize:11,fontWeight:700,color:T.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{a.label}</div>
+        </div>
+
+        {/* LOGROS - ancho completo debajo */}
+        <div style={{marginBottom:24}}>
+          <SectionLabel T={T}>Logros 🏆</SectionLabel>
+          <div onClick={()=>onNav('achievements')}
+            style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden",cursor:"pointer"}}>
+            {earnedAchievements.length===0
+              ? <div style={{padding:20,fontSize:13,color:T.textDim,textAlign:"center"}}>
+                  <div style={{fontSize:32,marginBottom:8}}>🎯</div>
+                  Sigue coleccionando para desbloquear logros
+                </div>
+              : <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0}}>
+                  {earnedAchievements.slice(0,4).map((a,i)=>(
+                    <div key={a.id} style={{padding:"14px 16px",
+                      borderBottom:i<2?`1px solid ${T.border}`:"none",
+                      borderRight:i%2===0?`1px solid ${T.border}`:"none",
+                      display:"flex",flexDirection:"column",alignItems:"center",gap:6,textAlign:"center"}}>
+                      <span style={{fontSize:28}}>{a.icon}</span>
+                      <div style={{fontSize:11,fontWeight:700,color:T.text,lineHeight:1.2}}>{a.label}</div>
                       <div style={{fontSize:9,color:T.textDim}}>{a.desc}</div>
                     </div>
-                  </div>
-                ))
-              }
-              <div style={{padding:"8px 12px",fontSize:10,color:T.accent,fontWeight:700,textAlign:"center",borderTop:`1px solid ${T.border}`}}>Ver todos →</div>
-            </div>
+                  ))}
+                </div>
+            }
+            <div style={{padding:"10px 14px",fontSize:11,color:T.accent,fontWeight:700,
+              textAlign:"center",borderTop:`1px solid ${T.border}`}}>Ver todos los logros →</div>
           </div>
         </div>
 
@@ -850,8 +773,8 @@ function HomeScreen({ allOwned, allRepeats, onEnter, onNav, T, theme, toggleThem
         {/* COST TOGGLE */}
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 16px",background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,marginBottom:24}}>
           <div>
-            <div style={{fontSize:13,fontWeight:700,color:T.text}}>Coste estimado de la coleccion</div>
-            <div style={{fontSize:10,color:T.textDim}}>Min=sin duplicados; real=con duplicados</div>
+            <div style={{fontSize:13,fontWeight:700,color:T.text}}>Coste estimado de la colección</div>
+            <div style={{fontSize:10,color:T.textDim}}>Estimación basada en sobres a 1€</div>
           </div>
           <div onClick={toggleCost}
             style={{width:44,height:24,borderRadius:12,background:showCost?T.accent:T.surface2,cursor:"pointer",position:"relative",transition:"background 0.2s"}}>
@@ -861,7 +784,7 @@ function HomeScreen({ allOwned, allRepeats, onEnter, onNav, T, theme, toggleThem
         {/* DISCLAIMER */}
         <div style={{textAlign:"center",padding:"20px 16px 8px",borderTop:`1px solid ${T.border}`,marginTop:8}}>
           <div style={{fontSize:9,color:T.textDim,opacity:0.5,letterSpacing:0.5,lineHeight:1.6}}>
-            CROMA no esta afiliada ni patrocinada por Panini, LaLiga, FIFA ni ninguna entidad oficial.
+            CROMA no está afiliada ni patrocinada por Panini, LaLiga, FIFA ni ninguna entidad oficial.
             Los nombres de equipos y jugadores se usan con fines informativos.
           </div>
         </div>
@@ -887,7 +810,7 @@ function AchievementsScreen({ allOwned, onBack, T }) {
   return (
     <div style={{minHeight:"100vh",background:T.bg,color:T.text,paddingBottom:80,fontFamily:"'Inter',sans-serif"}}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');`}</style>
-      <div style={{padding:"max(56px,env(safe-area-inset-top)) 16px 16px",borderBottom:`1px solid ${T.border}`}}>
+      <div style={{padding:"56px 16px 16px",borderBottom:`1px solid ${T.border}`}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onBack} style={{background:"none",border:"none",color:T.text,fontSize:22,cursor:"pointer"}}>←</button>
           <div style={{fontWeight:800,fontSize:22,color:T.text}}>Logros 🏆</div>
@@ -947,7 +870,7 @@ function RepeatsScreen({ allOwned, allRepeats, onBack, T }) {
   return (
     <div style={{minHeight:"100vh",background:T.bg,color:T.text,paddingBottom:80,fontFamily:"'Inter',sans-serif"}}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');`}</style>
-      <div style={{padding:"max(56px,env(safe-area-inset-top)) 16px 16px",borderBottom:`1px solid ${T.border}`}}>
+      <div style={{padding:"56px 16px 16px",borderBottom:`1px solid ${T.border}`}}>
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
           <button onClick={onBack} style={{background:"none",border:"none",color:T.text,fontSize:22,cursor:"pointer"}}>←</button>
           <div style={{flex:1,fontWeight:800,fontSize:22,color:T.text}}>Mis repetidas 🔄</div>
@@ -961,7 +884,7 @@ function RepeatsScreen({ allOwned, allRepeats, onBack, T }) {
               <div key={c.id} onClick={()=>setActiveCollId(c.id)}
                 style={{background:T.surface,border:`2px solid ${isActive?c.color:T.border}`,borderRadius:16,padding:16,cursor:"pointer",textAlign:"center",transition:"border-color 0.2s"}}>
                 <div style={{display:"flex",justifyContent:"center",marginBottom:10}}>
-                  <CollectionIcon collId={c.id} size={64}/>
+                  {c.id==="laliga" ? <LaLigaIcon size={64}/> : <MundialIcon size={64}/>}
                 </div>
                 <div style={{fontWeight:800,fontSize:15,color:T.text,marginBottom:2}}>{c.name}</div>
                 <div style={{fontSize:11,color:T.textDim}}>{c.sub}</div>
@@ -1002,7 +925,7 @@ function RepeatsScreen({ allOwned, allRepeats, onBack, T }) {
 }
 
 // - TEAM SCREEN -
-function PlayerCard({ card, owned, repeats = 0, T, teamPrimary, teamSecondary }) {
+function PlayerCard({ card, owned, T, teamPrimary, teamSecondary }) {
   const positions = { "POR":"GK", "DEF":"DEF", "MED":"MID", "DEL":"FWD" };
   const pos = positions[card.pos] || card.section?.slice(0,3).toUpperCase() || "★";
   return (
@@ -1029,9 +952,7 @@ function PlayerCard({ card, owned, repeats = 0, T, teamPrimary, teamSecondary })
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
         <div style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.5)",letterSpacing:1}}>#{card.num}</div>
         {owned
-          ? repeats > 0
-            ? <div style={{background:"rgba(240,192,64,0.25)",color:"#f0c040",fontWeight:900,fontSize:9,padding:"1px 6px",borderRadius:8,lineHeight:1.4}}>+{repeats}</div>
-            : <div style={{width:8,height:8,borderRadius:"50%",background:"#22c55e"}}/>
+          ? <div style={{width:8,height:8,borderRadius:"50%",background:"#22c55e"}}/>
           : <div style={{width:8,height:8,borderRadius:"50%",background:"rgba(255,255,255,0.15)"}}/>
         }
       </div>
@@ -1079,11 +1000,10 @@ const NATIONAL = {
   "Uruguay":{"p":"#5EB6E4","s":"#ffffff"},"Uzbekistán":{"p":"#1EB53A","s":"#ffffff"},
 };
 
-function TeamScreen({ team, collId, ownedMap, repeatsMap, onToggle, onRepeat, onTap, onLongPress, onBack, T }) {
+function TeamScreen({ team, collId, ownedMap, onBack, T }) {
   const t = TEAMS[team] || NATIONAL[team] || { p:"#1a3a6b", s:"#ffffff", abbr:"?" };
   const coll = COLLECTIONS[collId];
-  let teamCards = coll.cards.filter(c => c.team === team);
-  if (teamCards.length === 0) teamCards = coll.cards.filter(c => c.section === team);
+  const teamCards = coll.cards.filter(c => c.team === team);
   const owned = teamCards.filter(c => ownedMap[c.id]!==undefined ? ownedMap[c.id] : c.owned);
   const pct = Math.round(owned.length / teamCards.length * 100);
 
@@ -1095,13 +1015,13 @@ function TeamScreen({ team, collId, ownedMap, repeatsMap, onToggle, onRepeat, on
   });
 
   return (
-    <div style={{minHeight:"100vh",background:"#0a0a0a",color:"#fff",paddingBottom:40,fontFamily:"Inter,sans-serif"}}>
+    <div style={{minHeight:"100vh",background:T.bg,color:T.text,paddingBottom:40,fontFamily:"Inter,sans-serif"}}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');`}</style>
 
       {/* Hero header with team colors */}
       <div style={{
         background: `linear-gradient(160deg, ${t.p} 0%, ${t.p}88 60%, #0a0a0a 100%)`,
-        padding: "max(56px,env(safe-area-inset-top)) 20px 28px",
+        padding: "56px 20px 28px",
         position: "relative",
         overflow: "hidden",
       }}>
@@ -1139,14 +1059,8 @@ function TeamScreen({ team, collId, ownedMap, repeatsMap, onToggle, onRepeat, on
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
               {cards.map(card => {
                 const isOwned = ownedMap[card.id]!==undefined ? ownedMap[card.id] : card.owned;
-                const reps = repeatsMap ? (repeatsMap[card.id]||0) : 0;
                 return (
-                  <TapCard key={card.id}
-                    onTap={()=> onTap ? onTap(collId,card.id) : (onToggle&&onToggle(collId,card.id,!isOwned))}
-                    onLongPress={()=> onLongPress && onLongPress(collId,card.id)}
-                    style={{cursor:'pointer'}}>
-                    <PlayerCard card={card} owned={isOwned} repeats={reps} T={T} teamPrimary={t.p} teamSecondary={t.s}/>
-                  </TapCard>
+                  <PlayerCard key={card.id} card={card} owned={isOwned} T={T} teamPrimary={t.p} teamSecondary={t.s}/>
                 );
               })}
             </div>
@@ -1183,7 +1097,7 @@ function StatsScreen({ allOwned, onBack, T }) {
 
   const renderRow = (item,i,arr,color) => {
     const handleTeamClick = () => setActiveTeam(item.team);
-    // Color gradient based on % - red < 40%, gold 40-79%, green 80%+
+    // Color gradient based on % — red < 40%, gold 40-79%, green 80%+
     const pctColor = item.pct===100 ? T.green : item.pct>=80 ? T.green : item.pct>=40 ? T.gold : T.red;
     const barGrad = item.pct===100
       ? T.green
@@ -1212,7 +1126,7 @@ function StatsScreen({ allOwned, onBack, T }) {
   return (
     <div style={{minHeight:"100vh",background:T.bg,color:T.text,paddingBottom:80,fontFamily:"'Inter',sans-serif"}}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');`}</style>
-      <div style={{padding:"max(56px,env(safe-area-inset-top)) 16px 16px",borderBottom:`1px solid ${T.border}`}}>
+      <div style={{padding:"56px 16px 16px",borderBottom:`1px solid ${T.border}`}}>
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
           <button onClick={onBack} style={{background:"none",border:"none",color:T.text,fontSize:22,cursor:"pointer"}}>←</button>
           <div style={{flex:1,fontWeight:800,fontSize:22,color:T.text}}>Estadísticas 📊</div>
@@ -1226,7 +1140,7 @@ function StatsScreen({ allOwned, onBack, T }) {
               <div key={c.id} onClick={()=>setActiveCollId(c.id)}
                 style={{background:T.surface,border:`2px solid ${isActive?c.color:T.border}`,borderRadius:14,padding:12,cursor:"pointer",textAlign:"center",transition:"border-color 0.2s"}}>
                 <div style={{display:"flex",justifyContent:"center",marginBottom:8}}>
-                  <CollectionIcon collId={c.id} size={52}/>
+                  {c.id==="laliga" ? <LaLigaIcon size={52}/> : <MundialIcon size={52}/>}
                 </div>
                 <div style={{fontWeight:800,fontSize:13,color:T.text}}>{c.name}</div>
                 <div style={{fontSize:11,color:c.color,fontWeight:700,marginTop:2}}>{pct}%</div>
@@ -1271,7 +1185,7 @@ function ProfileScreen({ allOwned, onBack, T }) {
   return (
     <div style={{minHeight:"100vh",background:T.bg,color:T.text,paddingBottom:80,fontFamily:"'Inter',sans-serif"}}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');`}</style>
-      <div style={{padding:"max(56px,env(safe-area-inset-top)) 16px 16px",borderBottom:`1px solid ${T.border}`}}>
+      <div style={{padding:"56px 16px 16px",borderBottom:`1px solid ${T.border}`}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onBack} style={{background:"none",border:"none",color:T.text,fontSize:22,cursor:"pointer"}}>←</button>
           <div style={{fontWeight:800,fontSize:22,color:T.text}}>Mi Perfil</div>
@@ -1370,24 +1284,6 @@ const SECTION_STYLES = {
   "Mascotas":            { grad:["#001428","#002040"], accent:"#34d399", label:"🦝" },
   "Eternos 22":          { grad:["#0a0a0a","#1a1a1a"], accent:"#c0c0c0", label:"🏆" },
   "Limited Edition":     { grad:["#0a0a0a","#1a1a1a"], accent:"#e879f9", label:"💫" },
-  // MEGACRACKS
-  "Elite":              { grad:["#1a0e00","#2d1a00"], accent:"#f0c040", label:"⭐" },
-  "Equipos":            { grad:["#1e2540","#0f1420"], accent:"#6b9bd2", label:"🏟️" },
-  "Vértigo":            { grad:["#0a0010","#1a0020"], accent:"#e879f9", label:"⚡" },
-  "Zona VIP":           { grad:["#1a0a30","#2e1a50"], accent:"#a78bfa", label:"💎" },
-  "Flashback":          { grad:["#0a0a0a","#1a1a1a"], accent:"#f0c040", label:"⏪" },
-  "Nuevos Fichajes":    { grad:["#001a0a","#003d1a"], accent:"#4ade80", label:"🆕" },
-  "3a Edicion":         { grad:["#001a14","#003a30"], accent:"#2dd4bf", label:"3️⃣" },
-  "Parallels":          { grad:["#0a0a1a","#14142a"], accent:"#818cf8", label:"✨" },
-  "Inserts":            { grad:["#0a0010","#1a0030"], accent:"#c084fc", label:"🃏" },
-  "Autografos":         { grad:["#0a0a0a","#1a1a1a"], accent:"#fbbf24", label:"✍️" },
-  "Cards Indice":       { grad:["#1a1a2e","#2d2d44"], accent:"#94a3b8", label:"📇" },
-  "Especiales":         { grad:["#1a0000","#2d0000"], accent:"#ef4444", label:"💥" },
-  // MUNDIAL STICKERS
-  "Album":              { grad:["#0a0a1a","#1a1a2a"], accent:"#94a3b8", label:"📖" },
-  "Extra Stickers":     { grad:["#1a1000","#2d1c00"], accent:"#fbbf24", label:"⭐" },
-  "Coca Cola":          { grad:["#1a0000","#2d0000"], accent:"#ef4444", label:"🥤" },
-  "Historia Mundial":   { grad:["#0a0a0a","#1a1a1a"], accent:"#e2c068", label:"🏆" },
 };
 
 function getSectionStyle(section) {
@@ -1395,44 +1291,39 @@ function getSectionStyle(section) {
 }
 
 // - COLLECTION GRID SCREEN -
-function CollectionGridScreen({ collId, ownedMap, repeatsMap, onSelectGroup, onBack, onSetMode, collMode, T }) {
-  const coll = COLLECTIONS[collId];
-  const cards = coll.cards;
-  const collName = coll.name;
-  const collColor = coll.color;
+function CollectionGridScreen({ collId, ownedMap, repeatsMap, onSelectGroup, onBack, T }) {
+  const cards = collId === 'laliga' ? LALIGA_CARDS : MUNDIAL_CARDS;
+  const collName = collId === 'laliga' ? 'La Liga 2025-26' : 'Mundial 2026';
+  const collColor = collId === 'laliga' ? '#f97316' : '#3b82f6';
 
   // Build groups based on collection
   const groups = useMemo(() => {
     const map = {};
     cards.forEach(c => {
       const owned = ownedMap[c.id] !== undefined ? ownedMap[c.id] : c.owned;
+      // Group key: for Regulares use team, otherwise use team (subcategory)
       let groupKey, groupSection;
       if (collId === 'laliga') {
-        groupKey = c.team;
-        groupSection = c.section === 'Regulares' ? 'Regulares' : c.section;
-      } else if (collId === 'mundial') {
+        if (c.section === 'Regulares') {
+          groupKey = c.team;
+          groupSection = 'Regulares';
+        } else {
+          groupKey = c.team;
+          groupSection = c.section;
+        }
+      } else {
         if (c.section === 'Selecciones') {
-          groupKey = c.team; groupSection = 'Selecciones';
+          groupKey = c.team;
+          groupSection = 'Selecciones';
         } else if (c.section === 'Golden Baller') {
-          groupKey = 'Golden Baller'; groupSection = 'Golden Baller';
+          groupKey = 'Golden Baller';
+          groupSection = 'Golden Baller';
         } else if (c.section === 'Contenders') {
           groupKey = c.team === 'Contenders' ? 'Contenders - Grupos' : c.team;
           groupSection = 'Contenders';
         } else {
-          groupKey = c.team; groupSection = c.section;
-        }
-      } else if (collId === 'megacracks') {
-        if (c.section === 'Equipos') {
-          groupKey = resolveTeam(c.team); groupSection = 'Equipos';
-        } else {
-          groupKey = c.section; groupSection = c.section;
-        }
-      } else {
-        // mundialst
-        if (c.section === 'Selecciones') {
-          groupKey = c.team; groupSection = 'Selecciones';
-        } else {
-          groupKey = c.section; groupSection = c.section;
+          groupKey = c.team;
+          groupSection = c.section;
         }
       }
       if (!map[groupKey]) map[groupKey] = { key: groupKey, section: groupSection, cards: [], owned: 0, total: 0 };
@@ -1443,12 +1334,9 @@ function CollectionGridScreen({ collId, ownedMap, repeatsMap, onSelectGroup, onB
   }, [cards, ownedMap, collId]);
 
   // Organize into sections
-  const sectionOrder = useMemo(() => {
-    if (collId === 'laliga') return ['Regulares','Especiales','Actualización Plus','Coleccionables','Edición Limitada'];
-    if (collId === 'mundial') return ['Golden Baller','Selecciones','Contenders','Especiales','Coleccionables'];
-    if (collId === 'megacracks') return ['Elite','Equipos','Vértigo','Zona VIP','Master Rookie','Flashback','Nuevos Fichajes','3a Edicion','Parallels','Inserts','Especiales','Cards Indice'];
-    return ['Album','Selecciones','Extra Stickers','Coca Cola','Historia Mundial'];
-  }, [collId]);
+  const sectionOrder = collId === 'laliga'
+    ? ['Regulares','Especiales','Actualización Plus','Coleccionables','Edición Limitada']
+    : ['Golden Baller','Selecciones','Contenders','Especiales','Coleccionables'];
 
   const grouped = useMemo(() => {
     const s = {};
@@ -1458,78 +1346,36 @@ function CollectionGridScreen({ collId, ownedMap, repeatsMap, onSelectGroup, onB
       if (s[sec]) s[sec].push(g);
     });
     return s;
-  }, [groups, sectionOrder]);
+  }, [groups]);
 
   const totalOwned = Object.values(ownedMap).filter(Boolean).length +
     cards.filter(c => ownedMap[c.id] === undefined && c.owned).length;
   const totalCards = cards.length;
   const pct = Math.round(totalOwned / totalCards * 100);
 
-  const [showModeModal, setShowModeModal] = useState(() => collMode === null && pct > 60);
-
   return (
     <div style={{minHeight:'100vh',background:T.bg,color:T.text,
       fontFamily:"'Barlow Condensed','Arial Narrow',sans-serif",paddingBottom:90}}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;900&display=swap');
-        .gc-card{cursor:pointer;transition:transform 0.12s,opacity 0.12s;}
+        .gc-card{cursor:pointer;transition:transform 0.12s,opacity 0.12s;} 
         .gc-card:active{transform:scale(0.96);}
       `}</style>
 
-      {/* Modo Inteligente modal */}
-      {showModeModal && (
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:500,
-          display:'flex',alignItems:'center',justifyContent:'center',padding:24}}>
-          <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:20,
-            padding:28,maxWidth:360,width:'100%',textAlign:'center'}}>
-            <div style={{fontSize:32,marginBottom:12}}>🧠</div>
-            <div style={{fontWeight:900,fontSize:18,color:T.text,marginBottom:8}}>
-              Modo Inteligente
-            </div>
-            <div style={{fontSize:13,color:T.textDim,marginBottom:20,lineHeight:1.5}}>
-              Tienes el <span style={{color:T.accent,fontWeight:800}}>{pct}%</span> de esta coleccion.
-              Como prefieres trabajar?
-            </div>
-            <button
-              onClick={()=>{ if(onSetMode) onSetMode('inverse'); setShowModeModal(false); }}
-              style={{width:'100%',padding:"13px 16px",borderRadius:12,border:'none',
-                background:`linear-gradient(135deg,${T.accent},#dc2626)`,
-                color:'#fff',fontWeight:800,fontSize:14,cursor:'pointer',marginBottom:10,
-                fontFamily:"'Inter',sans-serif"}}>
-              Marcar las que me FALTAN
-            </button>
-            <button
-              onClick={()=>{ if(onSetMode) onSetMode('normal'); setShowModeModal(false); }}
-              style={{width:'100%',padding:"13px 16px",borderRadius:12,
-                border:`1px solid ${T.border}`,
-                background:T.surface2,color:T.textDim,fontWeight:700,fontSize:14,
-                cursor:'pointer',fontFamily:"'Inter',sans-serif"}}>
-              Marcar las que TENGO
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Header */}
       <div style={{background:`linear-gradient(135deg,${collColor}22,${T.bg})`,
-        borderBottom:`1px solid ${T.border}`,padding:'max(56px,env(safe-area-inset-top)) 16px 12px',
+        borderBottom:`1px solid ${T.border}`,padding:'16px 16px 12px',
         position:'sticky',top:0,zIndex:100,backdropFilter:'blur(12px)'}}>
         <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}>
           <button onClick={onBack} style={{background:'none',border:'none',color:T.text,
             fontSize:22,cursor:'pointer',lineHeight:1,padding:'4px 8px 4px 0'}}>←</button>
           <div style={{flex:1}}>
-            <div style={{fontSize:9,letterSpacing:2,color:T.textDim,textTransform:'uppercase'}}>{coll.sub}</div>
+            <div style={{fontSize:9,letterSpacing:2,color:T.textDim,textTransform:'uppercase'}}>Trading Cards</div>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,letterSpacing:1,lineHeight:1}}>{collName}</div>
           </div>
           <div style={{textAlign:'right'}}>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,color:collColor,letterSpacing:1}}>{pct}%</div>
             <div style={{fontSize:10,color:T.textDim}}>{totalOwned}/{totalCards}</div>
-            {collMode==='inverse' && (
-              <div style={{fontSize:8,background:"rgba(220,38,38,0.15)",color:"#dc2626",
-                fontWeight:700,padding:"1px 6px",borderRadius:6,letterSpacing:0.5,marginTop:2}}>
-                MODO FALTAN
-              </div>
-            )}
           </div>
         </div>
         <div style={{height:3,background:T.surface2,borderRadius:4,overflow:'hidden'}}>
@@ -1560,8 +1406,7 @@ function CollectionGridScreen({ collId, ownedMap, repeatsMap, onSelectGroup, onB
                 {items.map(group => {
                   const pct = group.total > 0 ? Math.round(group.owned/group.total*100) : 0;
                   const teamData = TEAMS[group.key] || NATIONAL[group.key];
-                  const isCountryGroup = (group.section === 'Contenders' && group.key !== 'Contenders - Grupos') || group.section === 'Selecciones' || group.section === 'Regulares' || group.section === 'Equipos';
-                  const style = getSectionStyle(isCountryGroup ? group.section : group.key);
+                  const style = getSectionStyle(group.section === 'Regulares' || group.section === 'Selecciones' ? group.section : group.key);
                   const accent = teamData ? teamData.p : style.accent;
                   const grad = teamData
                     ? [`${teamData.p}dd`, `${teamData.p}66`]
@@ -1587,12 +1432,8 @@ function CollectionGridScreen({ collId, ownedMap, repeatsMap, onSelectGroup, onB
                       {/* Shield or emoji */}
                       <div style={{marginBottom:6}}>
                         {teamData
-                        ? <Shield team={group.key} size={36}/>
-                        : (group.section === 'Contenders' && group.key !== 'Contenders - Grupos')
                           ? <Shield team={group.key} size={36}/>
-                          : group.section === 'Selecciones' && NATIONAL[group.key]
-                            ? <Shield team={group.key} size={36}/>
-                            : <div style={{fontSize:28,lineHeight:1}}>{style.label}</div>
+                          : <div style={{fontSize:28,lineHeight:1}}>{style.label}</div>
                         }
                       </div>
 
@@ -1632,7 +1473,7 @@ function CollectionGridScreen({ collId, ownedMap, repeatsMap, onSelectGroup, onB
 }
 
 // - COLLECTION SCREEN -
-function CollectionScreen({ collId, ownedMap, repeatsMap, onToggle, onRepeat, onTap, onLongPress, onBack, T, filterGroup, filterSection }) {
+function CollectionScreen({ collId, ownedMap, repeatsMap, onToggle, onRepeat, onBack, T, filterGroup, filterSection }) {
   const coll = COLLECTIONS[collId];
   const [activeSection, setActiveSection] = useState("Todas");
   const [activeTeam, setActiveTeam] = useState("Todos");
@@ -1689,7 +1530,7 @@ function CollectionScreen({ collId, ownedMap, repeatsMap, onToggle, onRepeat, on
         input{background:${T.surface};border:1px solid ${T.border};border-radius:10px;padding:10px 14px;color:${T.text};font-size:14px;font-family:'Inter',sans-serif;width:100%;outline:none;}
         input:focus{border-color:${T.accent};}
       `}</style>
-      <div style={{background:headerGrad,borderBottom:`1px solid ${T.border}`,padding:"max(56px,env(safe-area-inset-top)) 16px 12px",position:"sticky",top:0,zIndex:100,backdropFilter:"blur(12px)"}}>
+      <div style={{background:headerGrad,borderBottom:`1px solid ${T.border}`,padding:"56px 16px 12px",position:"sticky",top:0,zIndex:100,backdropFilter:"blur(12px)"}}>
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
           <button onClick={onBack} style={{background:"none",border:"none",color:T.text,fontSize:22,cursor:"pointer"}}>←</button>
           <div style={{flex:1}}>
@@ -1807,9 +1648,7 @@ function CollectionScreen({ collId, ownedMap, repeatsMap, onToggle, onRepeat, on
                   {teamCards.map(card=>{
                     const reps=repeatsMap[card.id]||0;
                     return (
-                      <TapCard key={card.id}
-                        onTap={()=> onTap ? onTap(collId,card.id) : onToggle(collId,card.id,!card.owned)}
-                        onLongPress={()=>onLongPress&&onLongPress(collId,card.id)}
+                      <div key={card.id} onClick={()=>onToggle(collId,card.id,!card.owned)}
                         style={{
                           background: card.owned
                             ? `linear-gradient(150deg,${accent}cc,${accent}77)`
@@ -1829,9 +1668,7 @@ function CollectionScreen({ collId, ownedMap, repeatsMap, onToggle, onRepeat, on
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
                           <div style={{fontSize:9,fontWeight:700,color:"rgba(255,255,255,0.5)",letterSpacing:1}}>#{card.num}</div>
                           {card.owned
-                            ? reps > 0
-                              ? <div style={{background:"rgba(240,192,64,0.25)",color:"#f0c040",fontWeight:900,fontSize:9,padding:"1px 5px",borderRadius:7,lineHeight:1.4}}>+{reps}</div>
-                              : <div style={{width:7,height:7,borderRadius:"50%",background:"#22c55e"}}/>
+                            ? <div style={{width:7,height:7,borderRadius:"50%",background:"#22c55e"}}/>
                             : <div style={{width:7,height:7,borderRadius:"50%",background:"rgba(255,255,255,0.15)"}}/>
                           }
                         </div>
@@ -1843,8 +1680,11 @@ function CollectionScreen({ collId, ownedMap, repeatsMap, onToggle, onRepeat, on
                         {/* Bottom */}
                         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginTop:8}}>
                           <div style={{fontSize:8,fontWeight:700,color:"rgba(255,255,255,0.35)",letterSpacing:2}}>CROMA</div>
+                          {reps>0 && (
+                            <div style={{background:"rgba(240,192,64,0.2)",color:T.gold,fontWeight:800,fontSize:10,padding:"1px 7px",borderRadius:10}}>×{reps}</div>
+                          )}
                         </div>
-                      </TapCard>
+                      </div>
                     );
                   })}
                 </div>
@@ -1886,46 +1726,21 @@ function SearchScreen({ allOwned, onTeamClick, onBack, T }) {
 
   const hasResults = Object.keys(results).length > 0;
 
-  const ResultCard = ({ card, collId }) => {
-    const om = allOwned[collId]||{};
-    const isOwned = om[card.id] !== undefined ? om[card.id] : card.owned;
-    const hasTeam = TEAMS[card.team]||NATIONAL[card.team];
-    return (
-      <div onClick={()=>onTeamClick(card.team, collId)}
-        style={{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",
-          background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,
-          marginBottom:6,cursor:"pointer"}}>
-        {hasTeam && <Shield team={card.team} size={26}/>}
-        <div style={{flex:1,minWidth:0}}>
-          <div style={{fontSize:14,fontWeight:700,color:T.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{card.name}</div>
-          <div style={{fontSize:10,color:T.textDim,marginTop:1}}>#{card.num} · {card.team} · {card.section}</div>
-        </div>
-        {isOwned && <div style={{width:7,height:7,borderRadius:"50%",background:T.green,flexShrink:0}}/>}
-      </div>
-    );
-  };
-
   return (
     <div style={{minHeight:"100vh",background:T.bg,color:T.text,paddingBottom:80,fontFamily:"'Inter',sans-serif"}}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');`}</style>
-
       <div style={{padding:"max(56px,env(safe-area-inset-top)) 16px 12px",borderBottom:`1px solid ${T.border}`,
         position:"sticky",top:0,zIndex:100,background:T.bg,backdropFilter:"blur(12px)"}}>
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
-          <button onClick={onBack} style={{background:"none",border:"none",color:T.text,fontSize:22,cursor:"pointer"}}>←</button>
+          <button onClick={onBack} style={{background:"none",border:"none",color:T.text,fontSize:22,cursor:"pointer"}}>&#8592;</button>
           <div style={{fontWeight:800,fontSize:20,color:T.text}}>Buscar</div>
         </div>
-        <input
-          autoFocus
-          value={query}
-          onChange={e=>setQuery(e.target.value)}
+        <input autoFocus value={query} onChange={e=>setQuery(e.target.value)}
           placeholder="Nombre, numero, equipo..."
           style={{width:"100%",boxSizing:"border-box",background:T.surface,
             border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 16px",
-            color:T.text,fontSize:15,fontFamily:"'Inter',sans-serif",outline:"none"}}
-        />
+            color:T.text,fontSize:15,fontFamily:"'Inter',sans-serif",outline:"none"}}/>
       </div>
-
       <div style={{padding:"12px 16px"}}>
         {!query.trim() && (
           <div style={{textAlign:"center",padding:48,color:T.textDim}}>
@@ -1934,17 +1749,14 @@ function SearchScreen({ allOwned, onTeamClick, onBack, T }) {
             <div style={{fontSize:12,marginTop:6}}>Nombre, numero o equipo</div>
           </div>
         )}
-        {query.trim().length === 1 && (
-          <div style={{textAlign:"center",padding:32,color:T.textDim,fontSize:13}}>Escribe al menos 2 caracteres</div>
-        )}
-        {query.trim().length >= 2 && !hasResults && (
+        {query.trim().length===1 && <div style={{textAlign:"center",padding:32,color:T.textDim,fontSize:13}}>Escribe al menos 2 caracteres</div>}
+        {query.trim().length>=2 && !hasResults && (
           <div style={{textAlign:"center",padding:48,color:T.textDim}}>
             <div style={{fontSize:36,marginBottom:12}}>😕</div>
             <div style={{fontSize:15,fontWeight:600}}>Sin resultados para "{query}"</div>
           </div>
         )}
-
-        {Object.entries(results).map(([collId, { name, hits }]) => (
+        {Object.entries(results).map(([collId,{name,hits}])=>(
           <div key={collId} style={{marginBottom:20}}>
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
               <CollectionIcon collId={collId} size={18}/>
@@ -1952,7 +1764,24 @@ function SearchScreen({ allOwned, onTeamClick, onBack, T }) {
                 {name} ({hits.length}{hits.length===20?"+":""})
               </div>
             </div>
-            {hits.map(c=><ResultCard key={c.id} card={c} collId={collId}/>)}
+            {hits.map(c=>{
+              const om = allOwned[collId]||{};
+              const isOwned = om[c.id]!==undefined?om[c.id]:c.owned;
+              const hasTeam = TEAMS[c.team]||NATIONAL[c.team];
+              return (
+                <div key={c.id} onClick={()=>onTeamClick(c.team,collId)}
+                  style={{display:"flex",alignItems:"center",gap:12,padding:"11px 14px",
+                    background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,
+                    marginBottom:6,cursor:"pointer"}}>
+                  {hasTeam && <Shield team={c.team} size={26}/>}
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:14,fontWeight:700,color:T.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.name}</div>
+                    <div style={{fontSize:10,color:T.textDim,marginTop:1}}>#{c.num} - {c.team} - {c.section}</div>
+                  </div>
+                  {isOwned && <div style={{width:7,height:7,borderRadius:"50%",background:T.green,flexShrink:0}}/>}
+                </div>
+              );
+            })}
           </div>
         ))}
       </div>
@@ -1960,14 +1789,15 @@ function SearchScreen({ allOwned, onTeamClick, onBack, T }) {
   );
 }
 
+
 // - NAV BAR -
 function NavBar({ screen, onNav, T }) {
   const items = [
-    { id:"home",        label:"Inicio",    icon:"🏠" },
-    { id:"stats",       label:"Stats",     icon:"📊" },
-    { id:"repeats",     label:"Repetidas", icon:"🔄" },
-    { id:"profile",     label:"Perfil",    icon:"👤" },
-    { id:"search",      label:"Buscar",    icon:"🔍" },
+    { id:"home",    label:"Inicio",    icon:"🏠" },
+    { id:"repeats", label:"Repetidas", icon:"🔄" },
+    { id:"search",  label:"Buscar",    icon:"🔍" },
+    { id:"stats",   label:"Stats",     icon:"📊" },
+    { id:"profile", label:"Perfil",    icon:"👤" },
   ];
   return (
     <div style={{position:"fixed",bottom:0,left:0,right:0,background:T.surface,borderTop:`1px solid ${T.border}`,
@@ -1994,9 +1824,9 @@ export default function App() {
   const [showCost, setShowCost] = useState(LS.loadShowCost);
   const T = THEMES[theme];
 
-  const [allOwned, setAllOwned] = useState(()=>({laliga:LS.loadOwned("laliga"),mundial:LS.loadOwned("mundial"),megacracks:LS.loadOwned("megacracks"),mundialst:LS.loadOwned("mundialst")}));
-  const [allRepeats, setAllRepeats] = useState(()=>({laliga:LS.loadRepeats("laliga"),mundial:LS.loadRepeats("mundial"),megacracks:LS.loadRepeats("megacracks"),mundialst:LS.loadRepeats("mundialst")}));
   const [collModes, setCollModes] = useState(()=>({laliga:LS.loadMode("laliga"),mundial:LS.loadMode("mundial"),megacracks:LS.loadMode("megacracks"),mundialst:LS.loadMode("mundialst")}));
+  const [allOwned, setAllOwned] = useState(()=>({laliga:LS.loadOwned("laliga"),mundial:LS.loadOwned("mundial")}));
+  const [allRepeats, setAllRepeats] = useState(()=>({laliga:LS.loadRepeats("laliga"),mundial:LS.loadRepeats("mundial")}));
 
   const toggleTheme = () => { const n=theme==='dark'?'light':'dark'; setTheme(n); LS.saveTheme(n); };
   const toggleCost  = () => { const n=!showCost; setShowCost(n); LS.savShowCost(n); };
@@ -2008,42 +1838,24 @@ export default function App() {
     setAllRepeats(prev => { const cur=prev[collId]||{}; const nv=Math.max(0,(cur[cardId]||0)+delta); const u={...cur,[cardId]:nv}; LS.saveAll(collId,allOwned[collId]||{},u); return {...prev,[collId]:u}; });
   };
 
-  const handleCardTap = (collId, cardId) => {
-    const mode = collModes[collId]||'normal';
-    const ownedMap = allOwned[collId]||{};
-    const repeatsMap = allRepeats[collId]||{};
-    const isOwned = ownedMap[cardId] !== undefined ? ownedMap[cardId] : false;
-    const reps = repeatsMap[cardId]||0;
-    const newOwned = {...ownedMap};
-    const newReps = {...repeatsMap};
-    if (mode === 'inverse') {
-      newOwned[cardId] = !isOwned;
-    } else {
-      if (!isOwned) {
-        newOwned[cardId] = true;
-        newReps[cardId] = 0;
-      } else if (reps < 5) {
-        newReps[cardId] = reps + 1;
-      } else {
-        newOwned[cardId] = false;
-        newReps[cardId] = 0;
-      }
-    }
-    LS.saveAll(collId, newOwned, newReps);
-    setAllOwned(prev => ({...prev, [collId]: newOwned}));
-    setAllRepeats(prev => ({...prev, [collId]: newReps}));
-  };
-
   const handleSetMode = (collId, mode) => {
     LS.saveMode(collId, mode);
     setCollModes(prev => ({...prev, [collId]: mode}));
-    if (mode === 'inverse') {
+    if (mode === "inverse") {
       const cards = COLLECTIONS[collId].cards;
-      const newOwned = {...(allOwned[collId]||{})};
-      cards.forEach(c => { newOwned[c.id] = true; });
-      LS.saveAll(collId, newOwned, allRepeats[collId]||{});
-      setAllOwned(prev => ({...prev, [collId]: newOwned}));
+      setAllOwned(prev => {
+        const newOwned = {...(prev[collId]||{})};
+        cards.forEach(c => { newOwned[c.id] = true; });
+        LS.saveAll(collId, newOwned, allRepeats[collId]||{});
+        return {...prev, [collId]: newOwned};
+      });
     }
+  };
+
+  const handleCardTap = (collId, cardId) => {
+    const ownedMap = allOwned[collId]||{};
+    const isOwned = ownedMap[cardId] !== undefined ? ownedMap[cardId] : false;
+    handleToggle(collId, cardId, !isOwned);
   };
 
   const handleCardLongPress = (collId, cardId) => {
@@ -2052,27 +1864,13 @@ export default function App() {
     const isOwned = ownedMap[cardId] !== undefined ? ownedMap[cardId] : false;
     if (!isOwned) return;
     const reps = repeatsMap[cardId]||0;
-    const newOwned = {...ownedMap};
-    const newReps = {...repeatsMap};
-    if (reps > 0) { newReps[cardId] = reps - 1; }
-    else { newOwned[cardId] = false; }
-    LS.saveAll(collId, newOwned, newReps);
-    setAllOwned(prev => ({...prev, [collId]: newOwned}));
-    setAllRepeats(prev => ({...prev, [collId]: newReps}));
+    if (reps > 0) {
+      handleRepeat(collId, cardId, -1);
+    } else {
+      handleToggle(collId, cardId, false);
+    }
   };
-
-  const handleNav = s => { setScreen(s); setActiveCollId(null); };
-
-  const [activeGroup, setActiveGroup] = useState(null);
-  const [activeGroupSection, setActiveGroupSection] = useState(null);
-
-  const handleSelectGroup = (group, section) => {
-    setActiveGroup(group);
-    setActiveGroupSection(section);
-    setActiveTeamName(group);
-    setTeamBackScreen("collection");
-    setScreen("team");
-  };
+  const handleNav = s => { setScreen(s); if(s!=="team") setActiveCollId(null); };
 
   const handleSearchTeamClick = (team, collId) => {
     setActiveTeamName(team);
@@ -2081,9 +1879,7 @@ export default function App() {
     setScreen("team");
   };
 
-  const showNav = screen !== "achievements";
-
-  if (screen==="team" && activeCollId && activeTeamName)
+  if (screen==="team"&&activeCollId&&activeTeamName)
     return <><TeamScreen team={activeTeamName} collId={activeCollId}
       ownedMap={allOwned[activeCollId]||{}}
       repeatsMap={allRepeats[activeCollId]||{}}
@@ -2091,8 +1887,27 @@ export default function App() {
       onRepeat={handleRepeat}
       onTap={handleCardTap}
       onLongPress={handleCardLongPress}
-      onBack={()=>setScreen(teamBackScreen)}
+      onBack={()=>setScreen(teamBackScreen||"collection")}
       T={T}/></>;
+
+
+
+  const [activeGroup, setActiveGroup] = useState(null);
+  const [activeGroupSection, setActiveGroupSection] = useState(null);
+
+  const handleSelectGroup = (group, section) => {
+    setActiveGroup(group);
+    setActiveGroupSection(section);
+    setScreen("group");
+  };
+
+  const screens = {
+    stats: <StatsScreen allOwned={allOwned} onBack={()=>setScreen("home")} T={T}/>,
+    repeats: <RepeatsScreen allOwned={allOwned} allRepeats={allRepeats} onBack={()=>setScreen("home")} T={T}/>,
+    profile: <ProfileScreen allOwned={allOwned} onBack={()=>setScreen("home")} T={T}/>,
+    achievements: <AchievementsScreen allOwned={allOwned} onBack={()=>setScreen("home")} T={T}/>,
+    search: <SearchScreen allOwned={allOwned} onTeamClick={handleSearchTeamClick} onBack={()=>setScreen("home")} T={T}/>,
+  };
 
   if (screen==="collection" && activeCollId)
     return <>
@@ -2117,9 +1932,7 @@ export default function App() {
         repeatsMap={allRepeats[activeCollId]||{}}
         onToggle={handleToggle}
         onRepeat={handleRepeat}
-        onTap={handleCardTap}
-        onLongPress={handleCardLongPress}
-        onBack={()=>setScreen("collection")}
+        onBack={()=>setScreen(teamBackScreen||"collection")}
         T={T}
         filterGroup={activeGroup}
         filterSection={activeGroupSection}
@@ -2127,20 +1940,12 @@ export default function App() {
       <NavBar screen={screen} onNav={handleNav} T={T}/>
     </>;
 
-  const screens = {
-    stats: <StatsScreen allOwned={allOwned} onBack={()=>setScreen("home")} T={T}/>,
-    repeats: <RepeatsScreen allOwned={allOwned} allRepeats={allRepeats} onBack={()=>setScreen("home")} T={T}/>,
-    profile: <ProfileScreen allOwned={allOwned} onBack={()=>setScreen("home")} T={T}/>,
-    achievements: <AchievementsScreen allOwned={allOwned} onBack={()=>setScreen("home")} T={T}/>,
-    search: <SearchScreen allOwned={allOwned} onTeamClick={handleSearchTeamClick} onBack={()=>setScreen("home")} T={T}/>,
-  };
-
   return (
     <>
       {screens[screen] || <HomeScreen allOwned={allOwned} allRepeats={allRepeats}
         onEnter={id=>{setActiveCollId(id);setScreen("collection");}}
         onNav={handleNav} T={T} theme={theme} toggleTheme={toggleTheme} showCost={showCost} toggleCost={toggleCost}/>}
-      {showNav && <NavBar screen={screen} onNav={handleNav} T={T}/>}
+      {screen!=="achievements" && <NavBar screen={screen} onNav={handleNav} T={T}/>}
     </>
   );
 }
