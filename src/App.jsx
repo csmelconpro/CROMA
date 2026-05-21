@@ -2350,18 +2350,61 @@ export default function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setAuthLoading(false);
+      if (session?.user) setTimeout(() => loadFromCloud(), 800);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
       if (event === 'SIGNED_IN') {
-        // Slight delay so refs have settled after state updates
-        setTimeout(() => syncToCloud(allOwnedRef.current, allRepeatsRef.current), 600);
+        // Load from cloud first, then sync local to cloud
+        setTimeout(() => loadFromCloud(), 600);
       }
     });
     return () => subscription.unsubscribe();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Upload all owned/repeated cards to Supabase in batches of 100 (local-first, silent)
+  const loadFromCloud = async () => {
+    const { data: { user: u } } = await supabase.auth.getUser();
+    if (!u) return;
+    try {
+      const { data, error } = await supabase
+        .from('collection_progress')
+        .select('coll_id,card_id,owned,repeats')
+        .eq('user_id', u.id);
+      if (error || !data || data.length === 0) return;
+
+      // Build owned and repeats maps from cloud data
+      const newOwned = {};
+      const newRepeats = {};
+      data.forEach(row => {
+        if (!newOwned[row.coll_id]) newOwned[row.coll_id] = {};
+        if (!newRepeats[row.coll_id]) newRepeats[row.coll_id] = {};
+        newOwned[row.coll_id][row.card_id] = row.owned;
+        if (row.repeats > 0) newRepeats[row.coll_id][row.card_id] = row.repeats;
+      });
+
+      // Merge with localStorage (cloud wins)
+      setAllOwned(prev => {
+        const merged = {...prev};
+        Object.entries(newOwned).forEach(([collId, om]) => {
+          merged[collId] = {...(prev[collId]||{}), ...om};
+          LS.saveAll(collId, merged[collId], newRepeats[collId]||{});
+        });
+        return merged;
+      });
+      setAllRepeats(prev => {
+        const merged = {...prev};
+        Object.entries(newRepeats).forEach(([collId, rm]) => {
+          merged[collId] = {...(prev[collId]||{}), ...rm};
+        });
+        return merged;
+      });
+      setSyncStatus('synced');
+    } catch(e) {
+      console.warn('[croma] load error', e.message);
+    }
+  };
+
   const syncToCloud = async (ownedSnap, repeatsSnap) => {
     const { data: { user: u } } = await supabase.auth.getUser();
     if (!u) return;
