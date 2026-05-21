@@ -1199,13 +1199,15 @@ function TeamScreen({ team, collId, ownedMap, repeatsMap, onToggle, onRepeat, on
                 const isOwned = ownedMap[card.id]!==undefined ? ownedMap[card.id] : card.owned;
                 const reps = repeatsMap ? (repeatsMap[card.id]||0) : 0;
                 return (
-                  <div key={card.id} style={{
+                  <div key={card.id}
+                    onClick={()=>onToggle&&onToggle(collId,card.id,!isOwned)}
+                    style={{
                     background: isOwned
                       ? `linear-gradient(150deg,${t.p}dd,${t.p}88)`
                       : T.surface2,
                     border:`1px solid ${isOwned?t.p+"66":T.border}`,
                     borderRadius:14,padding:"12px 10px 10px",
-                    position:"relative",overflow:"hidden",
+                    position:"relative",overflow:"hidden",cursor:"pointer",
                     display:"flex",flexDirection:"column",justifyContent:"space-between",
                     minHeight:90,opacity:isOwned?1:0.55,
                   }}>
@@ -1223,7 +1225,7 @@ function TeamScreen({ team, collId, ownedMap, repeatsMap, onToggle, onRepeat, on
                       }
                     </div>
                     {/* Name */}
-                    <div onClick={()=>onToggle&&onToggle(collId,card.id,!isOwned)} style={{cursor:"pointer",flex:1,display:"flex",alignItems:"center"}}>
+                    <div style={{flex:1,display:"flex",alignItems:"center"}}>
                       <div style={{fontSize:12,fontWeight:800,color:"#fff",lineHeight:1.2,
                         overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>
                         {card.name}
