@@ -1150,7 +1150,8 @@ function TeamScreen({ team, collId, ownedMap, repeatsMap, onToggle, onRepeat, on
   const coll = COLLECTIONS[collId];
   // For megacracks Equipos, team key is the resolved name but data uses aliases
   let teamCards = coll.cards.filter(c =>
-    collId === 'megacracks' ? (resolveTeam(c.team) === team || c.team === team) : c.team === team
+    c.section !== 'Extra Stickers' &&
+    (collId === 'megacracks' ? (resolveTeam(c.team) === team || c.team === team) : c.team === team)
   );
   if (teamCards.length === 0) teamCards = coll.cards.filter(c => c.section === team);
   const owned = teamCards.filter(c => ownedMap[c.id]!==undefined ? ownedMap[c.id] : c.owned);
@@ -1767,9 +1768,9 @@ function CollectionGridScreen({ collId, ownedMap, repeatsMap, onSelectGroup, onB
     return s;
   }, [groups]);
 
-  const totalOwned = Object.values(ownedMap).filter(Boolean).length +
-    cards.filter(c => ownedMap[c.id] === undefined && c.owned).length;
-  const totalCards = cards.length;
+  const mainCards = cards.filter(c => c.section !== 'Extra Stickers');
+  const totalOwned = mainCards.filter(c => ownedMap[c.id] !== undefined ? ownedMap[c.id] : c.owned).length;
+  const totalCards = mainCards.length;
   const pct = Math.round(totalOwned / totalCards * 100);
 
   return (
@@ -1792,9 +1793,35 @@ function CollectionGridScreen({ collId, ownedMap, repeatsMap, onSelectGroup, onB
             <div style={{fontSize:9,letterSpacing:2,color:T.textDim,textTransform:'uppercase'}}>{coll.sub}</div>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,letterSpacing:1,lineHeight:1}}>{collName}</div>
           </div>
-          <div style={{textAlign:'right'}}>
-            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,color:collColor,letterSpacing:1}}>{pct}%</div>
-            <div style={{fontSize:10,color:T.textDim}}>{totalOwned}/{totalCards}</div>
+          <div style={{textAlign:'right',display:'flex',alignItems:'center',gap:10}}>
+            <button onClick={()=>{
+              const missing = cards.filter(c => c.section !== 'Extra Stickers' && !(ownedMap[c.id] !== undefined ? ownedMap[c.id] : c.owned));
+              const byTeam = {};
+              missing.forEach(c => { if(!byTeam[c.team]) byTeam[c.team]=[]; byTeam[c.team].push(c.name); });
+              const teams = Object.entries(byTeam).slice(0,20);
+              const lines = teams.map(([t,ns]) => `⚽ ${t}: ${ns.slice(0,5).join(', ')}${ns.length>5?'...':''}`).join('
+');
+              const msg = `🃏 CROMA - ${collName}
+📊 ${pct}% completado (${totalOwned}/${totalCards})
+
+❌ Me faltan ${missing.length}:
+${lines}
+
+📲 croma-aa11.vercel.app`;
+              if (navigator.share) {
+                navigator.share({title:'CROMA', text:msg}).catch(()=>{});
+              } else {
+                navigator.clipboard.writeText(msg).then(()=>alert('Copiado al portapapeles'));
+              }
+            }}
+              style={{background:'rgba(255,255,255,0.1)',border:'none',borderRadius:8,
+                padding:'6px 10px',color:'#fff',fontSize:16,cursor:'pointer'}}>
+              ↗
+            </button>
+            <div>
+              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,color:collColor,letterSpacing:1}}>{pct}%</div>
+              <div style={{fontSize:10,color:T.textDim}}>{totalOwned}/{totalCards}</div>
+            </div>
           </div>
         </div>
         <div style={{height:3,background:T.surface2,borderRadius:4,overflow:'hidden'}}>
@@ -1821,7 +1848,9 @@ function CollectionGridScreen({ collId, ownedMap, repeatsMap, onSelectGroup, onB
               </div>
 
               {/* Grid */}
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+              <div style={{display:'grid',gridTemplateColumns:
+                (collId==='mundialst' && (sec.startsWith('Grupo') || sec==='Extra Stickers'))
+                  ? 'repeat(2,1fr)' : 'repeat(3,1fr)',gap:8}}>
                 {items.map(group => {
                   const pct = group.total > 0 ? Math.round(group.owned/group.total*100) : 0;
                   const teamData = TEAMS[group.key] || NATIONAL[group.key];
@@ -2422,9 +2451,10 @@ export default function App() {
         .from('collection_progress')
         .select('coll_id,card_id,owned,repeats')
         .eq('user_id', u.id);
-      if (error || !data || data.length === 0) return;
+      if (error) { console.warn('[croma] load error', error.message); return; }
+      if (!data || data.length === 0) { setSyncStatus('synced'); return; }
 
-      // Build owned and repeats maps from cloud data
+      // Build maps from cloud
       const newOwned = {};
       const newRepeats = {};
       data.forEach(row => {
@@ -2434,25 +2464,21 @@ export default function App() {
         if (row.repeats > 0) newRepeats[row.coll_id][row.card_id] = row.repeats;
       });
 
-      // Merge with localStorage (cloud wins)
-      setAllOwned(prev => {
-        const merged = {...prev};
-        Object.entries(newOwned).forEach(([collId, om]) => {
-          merged[collId] = {...(prev[collId]||{}), ...om};
-          LS.saveAll(collId, merged[collId], newRepeats[collId]||{});
-        });
-        return merged;
+      // Cloud wins - replace local state
+      const mergedOwned = {};
+      const mergedRepeats = {};
+      Object.keys(COLLECTIONS).forEach(collId => {
+        mergedOwned[collId] = {...(newOwned[collId]||{})};
+        mergedRepeats[collId] = {...(newRepeats[collId]||{})};
+        LS.saveAll(collId, mergedOwned[collId], mergedRepeats[collId]);
       });
-      setAllRepeats(prev => {
-        const merged = {...prev};
-        Object.entries(newRepeats).forEach(([collId, rm]) => {
-          merged[collId] = {...(prev[collId]||{}), ...rm};
-        });
-        return merged;
-      });
+      setAllOwned(mergedOwned);
+      setAllRepeats(mergedRepeats);
       setSyncStatus('synced');
+      console.log('[croma] loaded', data.length, 'rows from cloud');
     } catch(e) {
       console.warn('[croma] load error', e.message);
+      setSyncStatus('error');
     }
   };
 
