@@ -259,9 +259,74 @@ function ProgressRing({ pct, size=60, stroke=4, color="#f97316" }) {
 }
 
 // - COLLECTIONS -
+
+const MC_ALIASES = {
+  "Alavés":"Deportivo Alavés","Athletic":"Athletic Club",
+  "Atlético":"Atlético de Madrid","Barcelona":"FC Barcelona",
+  "Betis":"Real Betis","Celta":"RC Celta","Elche":"Elche CF",
+  "Espanyol":"RCD Espanyol","Getafe":"Getafe CF","Girona":"Girona FC",
+  "Levante":"Levante UD","Mallorca":"RCD Mallorca","Osasuna":"CA Osasuna",
+  "Oviedo":"Real Oviedo","Rayo":"Rayo Vallecano","Sociedad":"Real Sociedad",
+  "Sevilla":"Sevilla FC","Valencia":"Valencia CF","Villarreal":"Villarreal CF",
+};
+function resolveTeam(name) { return MC_ALIASES[name]||name; }
+
+function MegacracksIcon({ size = 46 }) {
+  const s = size;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none">
+      <defs>
+        <linearGradient id="mcBg" x1="0" y1="0" x2={s} y2={s} gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#1a1a1a"/>
+          <stop offset="100%" stopColor="#2d2d2d"/>
+        </linearGradient>
+      </defs>
+      <rect width={size} height={size} rx={size*0.22} fill="url(#mcBg)"/>
+      <rect x={s*.12} y={s*.18} width={s*.76} height={s*.64} rx={s*.06} fill="none" stroke="#f0c040" strokeWidth={s*.04}/>
+      <rect x={s*.22} y={s*.28} width={s*.56} height={s*.44} rx={s*.04} fill="#f0c04022"/>
+      <text x={s*.5} y={s*.56} textAnchor="middle" dominantBaseline="middle"
+        fontSize={s*.26} fontWeight="900" fill="#f0c040" style={{fontFamily:"Inter,sans-serif"}}>MC</text>
+      <circle cx={s*.5} cy={s*.13} r={s*.05} fill="#f0c040"/>
+    </svg>
+  );
+}
+
+function MundialStickersIcon({ size = 46 }) {
+  const s = size;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none">
+      <defs>
+        <linearGradient id="msBg" x1="0" y1="0" x2={s} y2={s} gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#0a1628"/><stop offset="100%" stopColor="#0d2a4a"/>
+        </linearGradient>
+      </defs>
+      <rect width={size} height={size} rx={size*0.22} fill="url(#msBg)"/>
+      <rect x={s*.14} y={s*.16} width={s*.72} height={s*.58} rx={s*.05} fill="none" stroke="#38bdf8" strokeWidth={s*.04}/>
+      <line x1={s*.14} y1={s*.42} x2={s*.86} y2={s*.42} stroke="#38bdf8" strokeWidth={s*.03} opacity="0.4"/>
+      <circle cx={s*.36} cy={s*.29} r={s*.09} fill="#38bdf822"/>
+      <circle cx={s*.36} cy={s*.29} r={s*.06} fill="#38bdf8"/>
+      <rect x={s*.52} y={s*.22} width={s*.26} height={s*.04} rx={s*.02} fill="#38bdf8" opacity="0.7"/>
+      <rect x={s*.52} y={s*.32} width={s*.18} height={s*.04} rx={s*.02} fill="#38bdf8" opacity="0.4"/>
+      <text x={s*.5} y={s*.73} textAnchor="middle" dominantBaseline="middle"
+        fontSize={s*.13} fontWeight="800" fill="#38bdf8" style={{fontFamily:"Inter,sans-serif"}}>STICKERS</text>
+    </svg>
+  );
+}
+
+function CollectionIcon({ collId, size = 46 }) {
+  if (collId === "laliga") return <LaLigaIcon size={size}/>;
+  if (collId === "mundial") return <MundialIcon size={size}/>;
+  if (collId === "megacracks") return <MegacracksIcon size={size}/>;
+  if (collId === "mundialst") return <MundialStickersIcon size={size}/>;
+  return <LaLigaIcon size={size}/>;
+}
+
+
 const COLLECTIONS = {
-  laliga:  { id:"laliga",  name:"La Liga 2025-26", color:"#f97316", sub:"Trading Cards", cards: LALIGA_CARDS,  pricePerPack: 1.0, cardsPerPack: 6 },
-  mundial: { id:"mundial", name:"Mundial 2026",     color:"#4ade80", sub:"Trading Cards", cards: MUNDIAL_CARDS, pricePerPack: 1.0, cardsPerPack: 6 },
+  laliga:    { id:"laliga",    name:"La Liga 2025-26",        color:"#f97316", sub:"Trading Cards", cards: LALIGA_CARDS,     pricePerPack: 1.0, cardsPerPack: 6, type:"cards"    },
+  mundial:   { id:"mundial",   name:"Mundial 2026 Adrenalyn", color:"#4ade80", sub:"Trading Cards", cards: MUNDIAL_CARDS,    pricePerPack: 2.0, cardsPerPack: 8, type:"cards"    },
+  megacracks:{ id:"megacracks",name:"Megacracks 2025-26",    color:"#f0c040", sub:"Trading Cards", cards: MEGACRACKS_CARDS, pricePerPack: 1.0, cardsPerPack: 6, type:"cards"    },
+  mundialst: { id:"mundialst", name:"Mundial 2026 Stickers",  color:"#38bdf8", sub:"Sticker Album", cards: MUNDIAL_STICKERS, pricePerPack: 1.5, cardsPerPack: 7, type:"stickers" },
 };
 
 
