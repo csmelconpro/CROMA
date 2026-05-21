@@ -1378,8 +1378,15 @@ function StatsScreen({ allOwned, onBack, T }) {
 }
 
 // - PROFILE SCREEN -
-function ProfileScreen({ allOwned, user, syncStatus, onSignOut, onGoAuth, updateProfile, onBack, T }) {
+function ProfileScreen({ allOwned, user, syncStatus, onSignOut, onGoAuth, updateProfile, loadProfileFromSupabase, onBack, T }) {
   const usernameInputRef = useRef(null);
+
+  useEffect(() => {
+    if (user) {
+      loadProfileFromSupabase();
+    }
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const totalCards = Object.values(COLLECTIONS).reduce((a,c)=>a+c.cards.length,0);
   const totalOwned = Object.values(COLLECTIONS).reduce((a,c)=>{
     const om = allOwned[c.id]||{};
@@ -2481,13 +2488,13 @@ export default function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setAuthLoading(false);
-      if (session?.user) setTimeout(() => loadFromCloud(), 800);
+      if (session?.user) setTimeout(async () => { await loadFromCloud(); await loadProfileFromSupabase(); }, 800);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
       if (event === 'SIGNED_IN') {
         // Load from cloud first, then sync local to cloud
-        setTimeout(() => loadFromCloud(), 600);
+        setTimeout(async () => { await loadFromCloud(); await loadProfileFromSupabase(); }, 600);
       }
     });
     return () => subscription.unsubscribe();
@@ -2538,17 +2545,48 @@ export default function App() {
   };
 
   // Update profile fields (username, avatar_url, photo_url) in Supabase.
-  // Only runs when user is authenticated; errors are silent.
-  const updateProfile = async (fields) => {
+  const updateProfile = async (updates) => {
+    if (!user) {
+      console.log("No hay usuario, guardando solo en localStorage");
+      return null;
+    }
+    try {
+      console.log("Actualizando perfil en Supabase:", updates);
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', user.id);
+      if (error) {
+        console.error("Error Supabase updateProfile:", error);
+        throw error;
+      }
+      console.log("Perfil actualizado en Supabase");
+      return data;
+    } catch (err) {
+      console.error("Error updateProfile:", err.message);
+      return null;
+    }
+  };
+
+  // Load profile data (username, avatar, photo) from Supabase into localStorage.
+  const loadProfileFromSupabase = async () => {
     if (!user) return;
     try {
-      const { error } = await supabase
+      console.log("Cargando perfil desde Supabase...");
+      const { data, error } = await supabase
         .from('profiles')
-        .update({ ...fields, updated_at: new Date().toISOString() })
-        .eq('id', user.id);
-      if (error) console.error('[croma] updateProfile error', error.message);
-    } catch (e) {
-      console.error('[croma] updateProfile exception', e.message);
+        .select('username, avatar_url, photo_url')
+        .eq('id', user.id)
+        .single();
+      if (error) throw error;
+      if (data) {
+        console.log("Perfil cargado:", data);
+        if (data.username) localStorage.setItem("croma_username", data.username);
+        if (data.avatar_url) localStorage.setItem("croma_avatar", data.avatar_url);
+        if (data.photo_url) localStorage.setItem("croma_photo", data.photo_url);
+      }
+    } catch (err) {
+      console.error("Error cargando perfil:", err);
     }
   };
 
@@ -2637,7 +2675,7 @@ export default function App() {
     repeats: <RepeatsScreen allOwned={allOwned} allRepeats={allRepeats} onBack={()=>setScreen("home")} T={T}/>,
     profile: <ProfileScreen allOwned={allOwned} user={user} syncStatus={syncStatus}
       onSignOut={handleSignOut} onGoAuth={()=>setScreen("auth")}
-      updateProfile={updateProfile}
+      updateProfile={updateProfile} loadProfileFromSupabase={loadProfileFromSupabase}
       onBack={()=>setScreen("home")} T={T}/>,
     achievements: <AchievementsScreen allOwned={allOwned} onBack={()=>setScreen("home")} T={T}/>,
     search: <SearchScreen allOwned={allOwned} onTeamClick={handleSearchTeamClick} onBack={()=>setScreen("home")} T={T}/>,
