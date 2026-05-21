@@ -1799,15 +1799,8 @@ function CollectionGridScreen({ collId, ownedMap, repeatsMap, onSelectGroup, onB
               const byTeam = {};
               missing.forEach(c => { if(!byTeam[c.team]) byTeam[c.team]=[]; byTeam[c.team].push(c.name); });
               const teams = Object.entries(byTeam).slice(0,20);
-              const lines = teams.map(([t,ns]) => `⚽ ${t}: ${ns.slice(0,5).join(', ')}${ns.length>5?'...':''}`).join('
-');
-              const msg = `🃏 CROMA - ${collName}
-📊 ${pct}% completado (${totalOwned}/${totalCards})
-
-❌ Me faltan ${missing.length}:
-${lines}
-
-📲 croma-aa11.vercel.app`;
+              const lines = teams.map(([t,ns]) => '⚽ '+t+': '+ns.slice(0,5).join(', ')+(ns.length>5?'...':'')).join('\n');
+              const msg = '🃏 CROMA - '+collName+'\n📊 '+pct+'% completado ('+totalOwned+'/'+totalCards+')\n\n❌ Me faltan '+missing.length+':\n'+lines+'\n\n📲 croma-aa11.vercel.app';
               if (navigator.share) {
                 navigator.share({title:'CROMA', text:msg}).catch(()=>{});
               } else {
