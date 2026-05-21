@@ -686,9 +686,12 @@ function CromaMasterSection({ T }) {
 }
 
 // - HOME -
-function HomeScreen({ allOwned, allRepeats, onEnter, onNav, T, theme, toggleTheme, showCost, toggleCost }) {
-  const [collType, setCollType] = useState("cards");
-  const visibleColls = Object.values(COLLECTIONS).filter(c => c.type === collType);
+function HomeScreen({ allOwned, allRepeats, onEnter, onNav, T, theme, toggleTheme, showCost, toggleCost, activeCollections }) {
+  const ac = activeCollections || {laliga:true,mundial:true,megacracks:true,mundialst:true};
+  const hasCards = ['laliga','mundial','megacracks'].some(id=>ac[id]);
+  const hasStickers = ac['mundialst'];
+  const [collType, setCollType] = useState(hasCards?"cards":"stickers");
+  const visibleColls = Object.values(COLLECTIONS).filter(c => c.type === collType && ac[c.id]);
   const laligaCards = COLLECTIONS.laliga.cards;
   const mundialCards = COLLECTIONS.mundial.cards;
   const laligaOwned = allOwned.laliga||{};
@@ -707,10 +710,10 @@ function HomeScreen({ allOwned, allRepeats, onEnter, onNav, T, theme, toggleThem
     return s;
   };
 
-  // Filter stats by active tab
-  const laligaStats = collType === "cards" ? buildStats(laligaCards, laligaOwned, ["Regulares"]) : {};
-  const mundialStats = collType === "cards" ? buildStats(mundialCards, mundialOwned, ["Selecciones"]) : {};
-  const stickersStats = collType === "stickers" ? buildStats(
+  // Filter stats by active tab and active collections
+  const laligaStats = collType === "cards" && ac.laliga ? buildStats(laligaCards, laligaOwned, ["Regulares"]) : {};
+  const mundialStats = collType === "cards" && ac.mundial ? buildStats(mundialCards, mundialOwned, ["Selecciones"]) : {};
+  const stickersStats = collType === "stickers" && ac.mundialst ? buildStats(
     COLLECTIONS.mundialst.cards,
     allOwned.mundialst||{},
     ["Selecciones"]
@@ -756,17 +759,19 @@ function HomeScreen({ allOwned, allRepeats, onEnter, onNav, T, theme, toggleThem
         {/* COLLECTIONS */}
         <div style={{height:1,background:T.border,marginBottom:16}}/>
 
-        {/* Cards / Stickers toggle */}
-        <div style={{display:"flex",gap:8,marginBottom:16}}>
-          {[["cards","🃏 Cartas"],["stickers","🏷️ Cromos"]].map(([type,label])=>(
-            <button key={type} onClick={()=>setCollType(type)}
-              style={{flex:1,padding:"8px 0",borderRadius:20,fontSize:13,fontWeight:700,cursor:"pointer",border:"none",
-                fontFamily:"'Inter',sans-serif",background:collType===type?T.accent:T.surface2,
-                color:collType===type?"#fff":T.textDim,transition:"all 0.15s"}}>
-              {label}
-            </button>
-          ))}
-        </div>
+        {/* Cards / Stickers toggle — only show if both types are active */}
+        {hasCards && hasStickers && (
+          <div style={{display:"flex",gap:8,marginBottom:16}}>
+            {[["cards","🃏 Cartas"],["stickers","🏷️ Cromos"]].map(([type,label])=>(
+              <button key={type} onClick={()=>setCollType(type)}
+                style={{flex:1,padding:"8px 0",borderRadius:20,fontSize:13,fontWeight:700,cursor:"pointer",border:"none",
+                  fontFamily:"'Inter',sans-serif",background:collType===type?T.accent:T.surface2,
+                  color:collType===type?"#fff":T.textDim,transition:"all 0.15s"}}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
 
         <SectionLabel T={T}>Mis Colecciones</SectionLabel>
         {visibleColls.map(coll => {
@@ -1378,8 +1383,9 @@ function StatsScreen({ allOwned, onBack, T }) {
 }
 
 // - PROFILE SCREEN -
-function ProfileScreen({ allOwned, user, syncStatus, onSignOut, onGoAuth, updateProfile, loadProfileFromSupabase, onBack, T }) {
+function ProfileScreen({ allOwned, user, syncStatus, onSignOut, onGoAuth, updateProfile, loadProfileFromSupabase, selectedCollections, onManageCollections, onBack, T }) {
   const usernameInputRef = useRef(null);
+  const ac = selectedCollections || {laliga:true,mundial:true,megacracks:true,mundialst:true};
 
   useEffect(() => {
     if (user) {
@@ -1387,8 +1393,9 @@ function ProfileScreen({ allOwned, user, syncStatus, onSignOut, onGoAuth, update
     }
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const totalCards = Object.values(COLLECTIONS).reduce((a,c)=>a+c.cards.length,0);
-  const totalOwned = Object.values(COLLECTIONS).reduce((a,c)=>{
+  const activeColls = Object.values(COLLECTIONS).filter(c=>ac[c.id]);
+  const totalCards = activeColls.reduce((a,c)=>a+c.cards.length,0);
+  const totalOwned = activeColls.reduce((a,c)=>{
     const om = allOwned[c.id]||{};
     return a + c.cards.filter(card=>om[card.id]!==undefined?om[card.id]:card.owned).length;
   },0);
@@ -1468,31 +1475,46 @@ function ProfileScreen({ allOwned, user, syncStatus, onSignOut, onGoAuth, update
               <div style={{fontSize:11,color:T.textDim}}>Cards totales</div>
             </div>
             <div style={{textAlign:"center"}}>
-              <div style={{fontWeight:800,fontSize:24,color:T.green}}>{Math.round(totalOwned/totalCards*100)}%</div>
+              <div style={{fontWeight:800,fontSize:24,color:T.green}}>{totalCards>0?Math.round(totalOwned/totalCards*100):0}%</div>
               <div style={{fontSize:11,color:T.textDim}}>Completado</div>
             </div>
             <div style={{textAlign:"center"}}>
-              <div style={{fontWeight:800,fontSize:24,color:T.gold}}>{Object.keys(COLLECTIONS).length}</div>
+              <div style={{fontWeight:800,fontSize:24,color:T.gold}}>{activeColls.length}</div>
               <div style={{fontSize:11,color:T.textDim}}>Colecciones</div>
             </div>
           </div>
         </div>
 
         {/* Collections progress */}
-        {Object.values(COLLECTIONS).map(coll=>{
-          const pct = getPct(coll.cards, allOwned[coll.id]||{});
-          return (
-            <div key={coll.id} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:16,marginBottom:12}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                <div style={{fontWeight:700,fontSize:14,color:T.text}}>{coll.name}</div>
-                <div style={{fontWeight:800,fontSize:14,color:coll.color}}>{pct}%</div>
+        <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:16,padding:20,marginBottom:16}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+            <div style={{fontWeight:800,fontSize:15,color:T.text}}>Mis colecciones</div>
+            {onManageCollections&&(
+              <button onClick={onManageCollections}
+                style={{padding:"6px 12px",borderRadius:8,background:T.accent,border:"none",
+                  color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif"}}>
+                Gestionar
+              </button>
+            )}
+          </div>
+          {activeColls.map(coll=>{
+            const pct = getPct(coll.cards, allOwned[coll.id]||{});
+            return (
+              <div key={coll.id} style={{marginBottom:12}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    <CollectionIcon collId={coll.id} size={24}/>
+                    <div style={{fontWeight:700,fontSize:14,color:T.text}}>{coll.name}</div>
+                  </div>
+                  <div style={{fontWeight:800,fontSize:14,color:coll.color}}>{pct}%</div>
+                </div>
+                <div style={{height:6,background:T.surface2,borderRadius:4,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:`${pct}%`,background:coll.color,borderRadius:4,transition:"width 0.6s"}}/>
+                </div>
               </div>
-              <div style={{height:6,background:T.surface2,borderRadius:4,overflow:"hidden"}}>
-                <div style={{height:"100%",width:`${pct}%`,background:coll.color,borderRadius:4,transition:"width 0.6s"}}/>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
 
         {/* Auth panel */}
         {user ? (
@@ -2415,6 +2437,217 @@ function AuthScreen({ onBack, T }) {
   );
 }
 
+// - LANDING PAGE -
+function LandingPage({ onStart, T }) {
+  return (
+    <div style={{
+      minHeight:"100vh",
+      background:`linear-gradient(135deg,${T.accent} 0%,#a855f7 100%)`,
+      display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+      padding:20,color:"#fff",fontFamily:"'Inter',sans-serif",position:"relative"
+    }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');`}</style>
+      <div style={{fontSize:72,fontWeight:900,marginBottom:16,textShadow:"0 4px 20px rgba(0,0,0,0.3)",letterSpacing:-2}}>
+        CROMA
+      </div>
+      <div style={{fontSize:20,fontWeight:600,marginBottom:8,opacity:0.95}}>
+        Tu colección de cartas Panini
+      </div>
+      <div style={{fontSize:15,opacity:0.8,marginBottom:40,textAlign:"center",maxWidth:400,lineHeight:1.5}}>
+        Gestiona tus cartas de La Liga, Mundial, Megacracks y más.
+        Marca tus duplicados, calcula tu progreso y encuentra lo que te falta.
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12,marginBottom:40,maxWidth:400,width:"100%"}}>
+        {[
+          {id:"laliga",   emoji:"⚽", name:"La Liga",  count:"690 cartas"},
+          {id:"mundial",  emoji:"🏆", name:"Mundial",  count:"712 cartas"},
+          {id:"megacracks",emoji:"⭐",name:"Megacracks",count:"670 cartas"},
+          {id:"mundialst",emoji:"🎴", name:"Stickers", count:"1060 cromos"},
+        ].map(col=>(
+          <div key={col.id} style={{
+            background:"rgba(255,255,255,0.15)",backdropFilter:"blur(10px)",
+            borderRadius:16,padding:"20px 16px",textAlign:"center",
+            border:"1px solid rgba(255,255,255,0.2)"
+          }}>
+            <div style={{marginBottom:8}}><CollectionIcon collId={col.id} size={40}/></div>
+            <div style={{fontWeight:700,fontSize:14,marginBottom:4}}>{col.name}</div>
+            <div style={{fontSize:11,opacity:0.8}}>{col.count}</div>
+          </div>
+        ))}
+      </div>
+      <button onClick={onStart} style={{
+        background:"#fff",color:T.accent,border:"none",borderRadius:16,
+        padding:"18px 48px",fontSize:18,fontWeight:800,cursor:"pointer",
+        boxShadow:"0 8px 32px rgba(0,0,0,0.3)",transition:"transform 0.2s",
+        fontFamily:"'Inter',sans-serif"
+      }}
+      onMouseEnter={e=>e.currentTarget.style.transform="scale(1.05)"}
+      onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}>
+        Comenzar 🚀
+      </button>
+      <div style={{position:"absolute",bottom:20,fontSize:12,opacity:0.6}}>
+        Panini Adrenalyn XL Collection Manager
+      </div>
+    </div>
+  );
+}
+
+// - ONBOARDING SCREEN -
+const ONBOARDING_COLLECTIONS = [
+  {id:"laliga",    name:"La Liga 2025-26",        items:"690 cartas",  price:"1€/sobre",   desc:"6 cartas por sobre"},
+  {id:"mundial",   name:"Mundial 2026 Adrenalyn", items:"712 cartas",  price:"2€/sobre",   desc:"8 cartas por sobre"},
+  {id:"megacracks",name:"Megacracks 2025-26",     items:"670 cartas",  price:"1€/sobre",   desc:"6 cartas por sobre"},
+  {id:"mundialst", name:"Mundial 2026 Stickers",  items:"1060 stickers",price:"1.50€/sobre",desc:"7 stickers por sobre"},
+];
+
+function OnboardingScreen({ onComplete, T }) {
+  const [selected, setSelected] = useState({laliga:false,mundial:false,megacracks:false,mundialst:false});
+  const hasSelection = Object.values(selected).some(v=>v);
+
+  const handleContinue = () => {
+    if (!hasSelection) return;
+    localStorage.setItem("croma_selected_collections", JSON.stringify(selected));
+    localStorage.setItem("croma_onboarding_completed", "true");
+    onComplete(selected);
+  };
+
+  return (
+    <div style={{minHeight:"100vh",background:T.bg,padding:20,overflowY:"auto",fontFamily:"'Inter',sans-serif"}}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');`}</style>
+      <div style={{maxWidth:600,margin:"0 auto",paddingTop:40}}>
+        <div style={{textAlign:"center",marginBottom:40}}>
+          <div style={{fontSize:32,fontWeight:900,color:T.text,marginBottom:8}}>¿Qué colecciones sigues?</div>
+          <div style={{fontSize:15,color:T.textDim}}>Selecciona las colecciones que tienes o quieres comenzar</div>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:16,marginBottom:32}}>
+          {ONBOARDING_COLLECTIONS.map(col=>{
+            const isSel = selected[col.id];
+            return (
+              <div key={col.id} onClick={()=>setSelected(prev=>({...prev,[col.id]:!prev[col.id]}))}
+                style={{
+                  background:isSel?T.accent+"15":T.surface,
+                  border:`2px solid ${isSel?T.accent:T.border}`,
+                  borderRadius:16,padding:20,cursor:"pointer",transition:"all 0.2s",
+                  display:"flex",alignItems:"center",gap:16
+                }}>
+                <div style={{
+                  width:24,height:24,borderRadius:6,border:`2px solid ${isSel?T.accent:T.border}`,
+                  background:isSel?T.accent:"transparent",display:"flex",alignItems:"center",
+                  justifyContent:"center",color:"#fff",fontSize:14,fontWeight:700,flexShrink:0
+                }}>{isSel&&"✓"}</div>
+                <div style={{flexShrink:0}}><CollectionIcon collId={col.id} size={48}/></div>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:17,fontWeight:800,color:T.text,marginBottom:4}}>{col.name}</div>
+                  <div style={{fontSize:13,color:T.textDim,marginBottom:2}}>{col.items} · {col.price}</div>
+                  <div style={{fontSize:12,color:T.textDim}}>{col.desc}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <button onClick={handleContinue} disabled={!hasSelection} style={{
+          width:"100%",padding:16,borderRadius:12,border:"none",
+          background:hasSelection?T.accent:T.border,color:"#fff",
+          fontSize:16,fontWeight:800,cursor:hasSelection?"pointer":"not-allowed",
+          opacity:hasSelection?1:0.5,fontFamily:"'Inter',sans-serif"
+        }}>
+          Continuar
+        </button>
+        {!hasSelection&&(
+          <div style={{textAlign:"center",marginTop:12,fontSize:13,color:T.red}}>
+            Selecciona al menos una colección para continuar
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// - MANAGE COLLECTIONS SCREEN -
+function ManageCollectionsScreen({ selectedCollections, allOwned, onSave, onBack, T }) {
+  const [selected, setSelected] = useState({...selectedCollections});
+
+  const hasSelection = Object.values(selected).some(v=>v);
+
+  const handleSave = () => {
+    if (!hasSelection) return;
+    onSave(selected);
+  };
+
+  const getProgress = (collId) => {
+    const coll = COLLECTIONS[collId];
+    if (!coll) return 0;
+    const om = allOwned[collId]||{};
+    return coll.cards.filter(c=>om[c.id]!==undefined?om[c.id]:c.owned).length;
+  };
+
+  return (
+    <div style={{minHeight:"100vh",background:T.bg,color:T.text,paddingBottom:80,fontFamily:"'Inter',sans-serif"}}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');`}</style>
+      <div style={{padding:"max(56px,env(safe-area-inset-top)) 16px 16px",borderBottom:`1px solid ${T.border}`}}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <button onClick={onBack} style={{background:"none",border:"none",color:T.text,fontSize:22,cursor:"pointer"}}>←</button>
+          <div style={{fontWeight:800,fontSize:22,color:T.text}}>Gestionar colecciones</div>
+        </div>
+      </div>
+      <div style={{padding:"24px 16px"}}>
+        <div style={{fontSize:14,color:T.textDim,marginBottom:24}}>
+          Activa o desactiva las colecciones que quieres seguir. Las colecciones desactivadas no aparecerán en la app.
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:16,marginBottom:32}}>
+          {ONBOARDING_COLLECTIONS.map(col=>{
+            const isSel = selected[col.id];
+            const progress = getProgress(col.id);
+            const hasProgress = progress > 0;
+            return (
+              <div key={col.id} onClick={()=>{
+                if (!isSel || !hasProgress) {
+                  setSelected(prev=>({...prev,[col.id]:!prev[col.id]}));
+                } else {
+                  if (window.confirm(`¿Desactivar "${col.name}"? Tienes ${progress} cartas guardadas. El progreso se conserva.`)) {
+                    setSelected(prev=>({...prev,[col.id]:false}));
+                  }
+                }
+              }}
+                style={{
+                  background:isSel?T.accent+"15":T.surface,
+                  border:`2px solid ${isSel?T.accent:T.border}`,
+                  borderRadius:16,padding:20,cursor:"pointer",transition:"all 0.2s",
+                  display:"flex",alignItems:"center",gap:16
+                }}>
+                <div style={{
+                  width:24,height:24,borderRadius:6,border:`2px solid ${isSel?T.accent:T.border}`,
+                  background:isSel?T.accent:"transparent",display:"flex",alignItems:"center",
+                  justifyContent:"center",color:"#fff",fontSize:14,fontWeight:700,flexShrink:0
+                }}>{isSel&&"✓"}</div>
+                <div style={{flexShrink:0}}><CollectionIcon collId={col.id} size={48}/></div>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:17,fontWeight:800,color:T.text,marginBottom:4}}>{col.name}</div>
+                  <div style={{fontSize:13,color:T.textDim,marginBottom:2}}>{col.items} · {col.price}</div>
+                  {hasProgress&&<div style={{fontSize:12,color:T.green}}>{progress} cartas guardadas</div>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <button onClick={handleSave} disabled={!hasSelection} style={{
+          width:"100%",padding:16,borderRadius:12,border:"none",
+          background:hasSelection?T.accent:T.border,color:"#fff",
+          fontSize:16,fontWeight:800,cursor:hasSelection?"pointer":"not-allowed",
+          opacity:hasSelection?1:0.5,fontFamily:"'Inter',sans-serif"
+        }}>
+          Guardar cambios
+        </button>
+        {!hasSelection&&(
+          <div style={{textAlign:"center",marginTop:12,fontSize:13,color:T.red}}>
+            Debes mantener al menos una colección activa
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // - APP ROOT -
 export default function App() {
   const [screen, setScreen] = useState("home");
@@ -2426,6 +2659,18 @@ export default function App() {
   const [theme, setTheme] = useState(LS.loadTheme);
   const [showCost, setShowCost] = useState(LS.loadShowCost);
   const T = THEMES[theme];
+
+  // Onboarding flow - skip if user has existing collection data
+  const hasExistingData = ['laliga','mundial','megacracks','mundialst'].some(id=>localStorage.getItem(`cc_${id}`));
+  const [showLanding, setShowLanding] = useState(()=>!localStorage.getItem("croma_onboarding_completed")&&!hasExistingData);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [selectedCollections, setSelectedCollections] = useState(()=>{
+    const saved = localStorage.getItem("croma_selected_collections");
+    return saved ? JSON.parse(saved) : {laliga:true,mundial:true,megacracks:true,mundialst:true};
+  });
+
+  const getActiveCollections = () =>
+    Object.fromEntries(Object.entries(COLLECTIONS).filter(([key])=>selectedCollections[key]));
 
   const [collModes, setCollModes] = useState(()=>({laliga:LS.loadMode("laliga"),mundial:LS.loadMode("mundial"),megacracks:LS.loadMode("megacracks"),mundialst:LS.loadMode("mundialst")}));
   const [allOwned, setAllOwned] = useState(()=>({laliga:LS.loadOwned("laliga"),mundial:LS.loadOwned("mundial"),megacracks:LS.loadOwned("megacracks"),mundialst:LS.loadOwned("mundialst")}));
@@ -2659,6 +2904,12 @@ export default function App() {
     setScreen("team");
   };
 
+  if (showLanding)
+    return <LandingPage onStart={()=>{setShowLanding(false);setShowOnboarding(true);}} T={T}/>;
+
+  if (showOnboarding)
+    return <OnboardingScreen onComplete={sel=>{setSelectedCollections(sel);setShowOnboarding(false);}} T={T}/>;
+
   if (screen==="team"&&activeCollId&&activeTeamName)
     return <><TeamScreen team={activeTeamName} collId={activeCollId}
       ownedMap={allOwned[activeCollId]||{}}
@@ -2676,10 +2927,22 @@ export default function App() {
     profile: <ProfileScreen allOwned={allOwned} user={user} syncStatus={syncStatus}
       onSignOut={handleSignOut} onGoAuth={()=>setScreen("auth")}
       updateProfile={updateProfile} loadProfileFromSupabase={loadProfileFromSupabase}
+      selectedCollections={selectedCollections}
+      onManageCollections={()=>setScreen("manage-collections")}
       onBack={()=>setScreen("home")} T={T}/>,
     achievements: <AchievementsScreen allOwned={allOwned} onBack={()=>setScreen("home")} T={T}/>,
     search: <SearchScreen allOwned={allOwned} onTeamClick={handleSearchTeamClick} onBack={()=>setScreen("home")} T={T}/>,
     auth: <AuthScreen onBack={()=>setScreen("profile")} T={T}/>,
+    "manage-collections": <ManageCollectionsScreen
+      selectedCollections={selectedCollections}
+      allOwned={allOwned}
+      onSave={sel=>{
+        setSelectedCollections(sel);
+        localStorage.setItem("croma_selected_collections",JSON.stringify(sel));
+        setScreen("profile");
+      }}
+      onBack={()=>setScreen("profile")}
+      T={T}/>,
   };
 
   if (screen==="collection" && activeCollId)
@@ -2717,7 +2980,8 @@ export default function App() {
     <>
       {screens[screen] || <HomeScreen allOwned={allOwned} allRepeats={allRepeats}
         onEnter={id=>{setActiveCollId(id);setScreen("collection");}}
-        onNav={handleNav} T={T} theme={theme} toggleTheme={toggleTheme} showCost={showCost} toggleCost={toggleCost}/>}
+        onNav={handleNav} T={T} theme={theme} toggleTheme={toggleTheme} showCost={showCost} toggleCost={toggleCost}
+        activeCollections={selectedCollections}/>}
       {screen!=="achievements" && <NavBar screen={screen} onNav={handleNav} T={T}/>}
     </>
   );
