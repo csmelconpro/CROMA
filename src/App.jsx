@@ -364,6 +364,8 @@ const LS = {
   savShowCost:v => { try { localStorage.setItem('croma_showcost',v?'true':'false'); } catch {} },
   loadMode:  id  => { try { return localStorage.getItem(`croma_mode_${id}`)||null; } catch { return null; } },
   saveMode:  (id,mode) => { try { localStorage.setItem(`croma_mode_${id}`,mode); } catch {} },
+  loadShown: id  => { try { return localStorage.getItem(`croma_shown_${id}`)==='1'; } catch { return false; } },
+  saveShown: id  => { try { localStorage.setItem(`croma_shown_${id}`,'1'); } catch {} },
 };
 
 // - ACHIEVEMENTS -
@@ -379,6 +381,18 @@ const ACHIEVEMENTS = {
     { id:"m50", label:"Mitad del camino", icon:"🥈", desc:"Mundial al 50%", threshold:50 },
     { id:"m75", label:"¡Ya casi!", icon:"🥇", desc:"Mundial al 75%", threshold:75 },
     { id:"m100",label:"¡COLECCIÓN COMPLETA!", icon:"🏆", desc:"Mundial al 100%", threshold:100 },
+  ],
+  megacracks: [
+    { id:"mc25", label:"25% completado", icon:"🥉", desc:"Megacracks al 25%", threshold:25 },
+    { id:"mc50", label:"Mitad del camino", icon:"🥈", desc:"Megacracks al 50%", threshold:50 },
+    { id:"mc75", label:"¡Ya casi!", icon:"🥇", desc:"Megacracks al 75%", threshold:75 },
+    { id:"mc100",label:"¡COLECCIÓN COMPLETA!", icon:"🏆", desc:"Megacracks al 100%", threshold:100 },
+  ],
+  mundialst: [
+    { id:"ms25", label:"25% completado", icon:"🥉", desc:"Stickers al 25%", threshold:25 },
+    { id:"ms50", label:"Mitad del camino", icon:"🥈", desc:"Stickers al 50%", threshold:50 },
+    { id:"ms75", label:"¡Ya casi!", icon:"🥇", desc:"Stickers al 75%", threshold:75 },
+    { id:"ms100",label:"¡ALBUM COMPLETO!", icon:"🏆", desc:"Stickers al 100%", threshold:100 },
   ],
 };
 
@@ -903,13 +917,10 @@ function HomeScreen({ allOwned, allRepeats, onEnter, onNav, T, theme, toggleThem
 
 // - ACHIEVEMENTS SCREEN -
 function AchievementsScreen({ allOwned, onBack, T }) {
-  const laligaPct = getPct(COLLECTIONS.laliga.cards, allOwned.laliga||{});
-  const mundialPct = getPct(COLLECTIONS.mundial.cards, allOwned.mundial||{});
-
   return (
     <div style={{minHeight:"100vh",background:T.bg,color:T.text,paddingBottom:80,fontFamily:"'Inter',sans-serif"}}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');`}</style>
-      <div style={{padding:"56px 16px 16px",borderBottom:`1px solid ${T.border}`}}>
+      <div style={{padding:"max(56px,env(safe-area-inset-top)) 16px 16px",borderBottom:`1px solid ${T.border}`}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onBack} style={{background:"none",border:"none",color:T.text,fontSize:22,cursor:"pointer"}}>←</button>
           <div style={{fontWeight:800,fontSize:22,color:T.text}}>Logros 🏆</div>
@@ -917,7 +928,7 @@ function AchievementsScreen({ allOwned, onBack, T }) {
       </div>
       <div style={{padding:"16px"}}>
         {Object.entries(ACHIEVEMENTS).map(([collId, achs])=>{
-          const pct = collId==="laliga" ? laligaPct : mundialPct;
+          const pct = getPct(COLLECTIONS[collId].cards, allOwned[collId]||{});
           return (
             <div key={collId} style={{marginBottom:24}}>
               <div style={{fontSize:13,letterSpacing:2,color:T.textDim,textTransform:"uppercase",fontWeight:700,marginBottom:12}}>
@@ -969,7 +980,7 @@ function RepeatsScreen({ allOwned, allRepeats, onBack, T }) {
   return (
     <div style={{minHeight:"100vh",background:T.bg,color:T.text,paddingBottom:80,fontFamily:"'Inter',sans-serif"}}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');`}</style>
-      <div style={{padding:"56px 16px 16px",borderBottom:`1px solid ${T.border}`}}>
+      <div style={{padding:"max(56px,env(safe-area-inset-top)) 16px 16px",borderBottom:`1px solid ${T.border}`}}>
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
           <button onClick={onBack} style={{background:"none",border:"none",color:T.text,fontSize:22,cursor:"pointer"}}>←</button>
           <div style={{flex:1,fontWeight:800,fontSize:22,color:T.text}}>Mis repetidas 🔄</div>
@@ -1095,14 +1106,22 @@ const NATIONAL = {
   "Panamá":{"p":"#DA121A","s":"#002B7F"},"Paraguay":{"p":"#D52B1E","s":"#0038A8"},
   "Países Bajos":{"p":"#FF4F00","s":"#ffffff"},"Portugal":{"p":"#006600","s":"#FF0000"},
   "Senegal":{"p":"#00853F","s":"#FDEF42"},"Sudáfrica":{"p":"#007A4D","s":"#FFB81C"},
-  "Suiza":{"p":"#FF0000","s":"#ffffff"},"Túnez":{"p":"#E70013","s":"#ffffff"},
+  "Suecia":{"p":"#006AA7","s":"#FECC02"},"Suiza":{"p":"#FF0000","s":"#ffffff"},
+  "Turquía":{"p":"#E30A17","s":"#ffffff"},"Túnez":{"p":"#E70013","s":"#ffffff"},
   "Uruguay":{"p":"#5EB6E4","s":"#ffffff"},"Uzbekistán":{"p":"#1EB53A","s":"#ffffff"},
+  "Bosnia-Herzegovina":{"p":"#002395","s":"#FFCD00"},"República Checa":{"p":"#D7141A","s":"#ffffff"},
+  "Iraq":{"p":"#CE1126","s":"#007A3D"},"R.D. Congo":{"p":"#007FFF","s":"#F7D618"},
+  "Dinamarca":{"p":"#C60C30","s":"#ffffff"},"Italia":{"p":"#009246","s":"#ffffff"},
+  "Jamaica":{"p":"#000000","s":"#FED100"},"Polonia":{"p":"#DC143C","s":"#ffffff"},
 };
 
-function TeamScreen({ team, collId, ownedMap, repeatsMap, onTap, onLongPress, onBack, T }) {
+function TeamScreen({ team, collId, ownedMap, repeatsMap, onToggle, onRepeat, onTap, onLongPress, onBack, T }) {
   const t = TEAMS[team] || NATIONAL[team] || { p:"#1a3a6b", s:"#ffffff", abbr:"?" };
   const coll = COLLECTIONS[collId];
-  let teamCards = coll.cards.filter(c => c.team === team);
+  // For megacracks Equipos, team key is the resolved name but data uses aliases
+  let teamCards = coll.cards.filter(c =>
+    collId === 'megacracks' ? (resolveTeam(c.team) === team || c.team === team) : c.team === team
+  );
   if (teamCards.length === 0) teamCards = coll.cards.filter(c => c.section === team);
   const owned = teamCards.filter(c => ownedMap[c.id]!==undefined ? ownedMap[c.id] : c.owned);
   const pct = teamCards.length ? Math.round(owned.length / teamCards.length * 100) : 0;
@@ -1160,13 +1179,28 @@ function TeamScreen({ team, collId, ownedMap, repeatsMap, onTap, onLongPress, on
               {cards.map(card => {
                 const isOwned = ownedMap[card.id]!==undefined ? ownedMap[card.id] : card.owned;
                 const reps = repeatsMap ? (repeatsMap[card.id]||0) : 0;
+                const handleTap = () => {
+                  if (onToggle) onToggle(collId, card.id, !isOwned);
+                  else if (onTap) onTap(collId, card.id);
+                };
                 return (
-                  <TapCard key={card.id}
-                    onTap={()=>onTap&&onTap(collId,card.id)}
-                    onLongPress={()=>onLongPress&&onLongPress(collId,card.id)}
-                    style={{cursor:"pointer"}}>
-                    <PlayerCard card={card} owned={isOwned} repeats={reps} T={T} teamPrimary={t.p} teamSecondary={t.s}/>
-                  </TapCard>
+                  <div key={card.id} style={{position:"relative"}}>
+                    <div onClick={handleTap} style={{cursor:"pointer"}}>
+                      <PlayerCard card={card} owned={isOwned} repeats={reps} T={T} teamPrimary={t.p} teamSecondary={t.s}/>
+                    </div>
+                    {isOwned && onRepeat && (
+                      <div style={{position:"absolute",bottom:6,right:6,display:"flex",alignItems:"center",gap:3,
+                        background:"rgba(0,0,0,0.55)",borderRadius:8,padding:"2px 4px"}}>
+                        <button onClick={e=>{e.stopPropagation();onRepeat(collId,card.id,-1);}}
+                          style={{width:18,height:18,borderRadius:4,border:"none",background:"rgba(255,255,255,0.12)",
+                            color:"#fff",fontSize:13,lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>-</button>
+                        <span style={{fontSize:11,fontWeight:700,color:reps>0?"#f0c040":"rgba(255,255,255,0.5)",minWidth:10,textAlign:"center"}}>{reps}</span>
+                        <button onClick={e=>{e.stopPropagation();onRepeat(collId,card.id,1);}}
+                          style={{width:18,height:18,borderRadius:4,border:"none",background:"rgba(255,255,255,0.12)",
+                            color:"#fff",fontSize:13,lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>+</button>
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -1184,15 +1218,17 @@ function StatsScreen({ allOwned, onBack, T }) {
   const [sortBy, setSortBy] = useState("missing");
   const coll = COLLECTIONS[activeCollId];
   const ownedMap = allOwned[activeCollId]||{};
-  const TEAM_SECS = { laliga:["Regulares"], mundial:["Selecciones"] };
-  const SPEC_SECS = { laliga:["Especiales","Plus","Bis"], mundial:["Golden Baller","Categorías Especiales","Especiales Únicas"] };
+  const TEAM_SECS = { laliga:["Regulares"], mundial:["Selecciones"], megacracks:["Equipos"], mundialst:["Selecciones"] };
+  const SPEC_SECS = { laliga:["Especiales"], mundial:["Golden Baller","Contenders"], megacracks:["Elite","Vértigo"], mundialst:[] };
 
   const buildList = (secs) => {
     const s={};
     coll.cards.filter(c=>secs.includes(c.section)&&c.team&&c.team!=="Contenders").forEach(c=>{
-      if(!s[c.team])s[c.team]={total:0,owned:0};
-      s[c.team].total++;
-      if(ownedMap[c.id]!==undefined?ownedMap[c.id]:c.owned)s[c.team].owned++;
+      // For megacracks Equipos, resolve team alias to full name
+      const teamKey = activeCollId==='megacracks' ? resolveTeam(c.team) : c.team;
+      if(!s[teamKey])s[teamKey]={total:0,owned:0};
+      s[teamKey].total++;
+      if(ownedMap[c.id]!==undefined?ownedMap[c.id]:c.owned)s[teamKey].owned++;
     });
     return Object.entries(s).map(([team,d])=>({team,total:d.total,owned:d.owned,missing:d.total-d.owned,pct:Math.round(d.owned/d.total*100)}))
       .sort((a,b)=>sortBy==="missing"?b.missing-a.missing:sortBy==="owned"?b.pct-a.pct:a.team.localeCompare(b.team));
@@ -1232,7 +1268,7 @@ function StatsScreen({ allOwned, onBack, T }) {
   return (
     <div style={{minHeight:"100vh",background:T.bg,color:T.text,paddingBottom:80,fontFamily:"'Inter',sans-serif"}}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');`}</style>
-      <div style={{padding:"56px 16px 16px",borderBottom:`1px solid ${T.border}`}}>
+      <div style={{padding:"max(56px,env(safe-area-inset-top)) 16px 16px",borderBottom:`1px solid ${T.border}`}}>
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
           <button onClick={onBack} style={{background:"none",border:"none",color:T.text,fontSize:22,cursor:"pointer"}}>←</button>
           <div style={{flex:1,fontWeight:800,fontSize:22,color:T.text}}>Estadísticas 📊</div>
@@ -1246,7 +1282,7 @@ function StatsScreen({ allOwned, onBack, T }) {
               <div key={c.id} onClick={()=>setActiveCollId(c.id)}
                 style={{background:T.surface,border:`2px solid ${isActive?c.color:T.border}`,borderRadius:14,padding:12,cursor:"pointer",textAlign:"center",transition:"border-color 0.2s"}}>
                 <div style={{display:"flex",justifyContent:"center",marginBottom:8}}>
-                  {c.id==="laliga" ? <LaLigaIcon size={52}/> : <MundialIcon size={52}/>}
+                  <CollectionIcon collId={c.id} size={52}/>
                 </div>
                 <div style={{fontWeight:800,fontSize:13,color:T.text}}>{c.name}</div>
                 <div style={{fontSize:11,color:c.color,fontWeight:700,marginTop:2}}>{pct}%</div>
@@ -1266,7 +1302,7 @@ function StatsScreen({ allOwned, onBack, T }) {
       </div>
       <div style={{padding:"12px 16px"}}>
         <div style={{fontSize:11,letterSpacing:2,color:T.textDim,textTransform:"uppercase",fontWeight:700,marginBottom:8}}>
-          {activeCollId==="laliga"?"Equipos":"Selecciones"}
+          {activeCollId==="laliga"||activeCollId==="megacracks"?"Equipos":"Selecciones"}
         </div>
         {teamList.map((item,i,arr)=>renderRow(item,i,arr,coll.color))}
         {specList.length>0 && <>
@@ -1280,8 +1316,6 @@ function StatsScreen({ allOwned, onBack, T }) {
 
 // - PROFILE SCREEN -
 function ProfileScreen({ allOwned, onBack, T }) {
-  const laligaPct = getPct(COLLECTIONS.laliga.cards, allOwned.laliga||{});
-  const mundialPct = getPct(COLLECTIONS.mundial.cards, allOwned.mundial||{});
   const totalCards = Object.values(COLLECTIONS).reduce((a,c)=>a+c.cards.length,0);
   const totalOwned = Object.values(COLLECTIONS).reduce((a,c)=>{
     const om = allOwned[c.id]||{};
@@ -1291,7 +1325,7 @@ function ProfileScreen({ allOwned, onBack, T }) {
   return (
     <div style={{minHeight:"100vh",background:T.bg,color:T.text,paddingBottom:80,fontFamily:"'Inter',sans-serif"}}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');`}</style>
-      <div style={{padding:"56px 16px 16px",borderBottom:`1px solid ${T.border}`}}>
+      <div style={{padding:"max(56px,env(safe-area-inset-top)) 16px 16px",borderBottom:`1px solid ${T.border}`}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onBack} style={{background:"none",border:"none",color:T.text,fontSize:22,cursor:"pointer"}}>←</button>
           <div style={{fontWeight:800,fontSize:22,color:T.text}}>Mi Perfil</div>
@@ -1323,7 +1357,7 @@ function ProfileScreen({ allOwned, onBack, T }) {
 
         {/* Collections progress */}
         {Object.values(COLLECTIONS).map(coll=>{
-          const pct = coll.id==="laliga" ? laligaPct : mundialPct;
+          const pct = getPct(coll.cards, allOwned[coll.id]||{});
           return (
             <div key={coll.id} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:16,marginBottom:12}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
@@ -1378,6 +1412,28 @@ const SECTION_STYLES = {
   "Sobre Premium Oro":   { grad:["#1a1000","#2d1c00"], accent:"#fbbf24", label:"💌" },
   "Jugón":               { grad:["#001a1a","#003333"], accent:"#22d3ee", label:"🎮" },
   "Edición Limitada":    { grad:["#0a0a0a","#1a1a1a"], accent:"#f0c040", label:"⚡" },
+  // MEGACRACKS
+  "Elite":               { grad:["#0a0010","#1a0028"], accent:"#c084fc", label:"👑" },
+  "Equipos":             { grad:["#1e2540","#0f1420"], accent:"#6b9bd2", label:"⚽" },
+  "Vértigo":             { grad:["#0a0010","#200030"], accent:"#e879f9", label:"💥" },
+  "Zona VIP":            { grad:["#1a1000","#2d1c00"], accent:"#f59e0b", label:"🌟" },
+  "Flashback":           { grad:["#1a0a00","#2d1400"], accent:"#f97316", label:"⏮" },
+  "Nuevos Fichajes":     { grad:["#001428","#002040"], accent:"#38bdf8", label:"✍" },
+  "3a Edicion":          { grad:["#101020","#1a1a30"], accent:"#818cf8", label:"3️" },
+  "Parallels":           { grad:["#0a0a0a","#1a1a1a"], accent:"#c0c0c0", label:"⬡" },
+  "Inserts":             { grad:["#001a1a","#003333"], accent:"#22d3ee", label:"🃏" },
+  "Autografos":          { grad:["#1a0a10","#2d0a20"], accent:"#f472b6", label:"✍" },
+  "Cards Indice":        { grad:["#0a0a14","#14142a"], accent:"#94a3b8", label:"📋" },
+  "Especiales":          { grad:["#1a1000","#2d1c00"], accent:"#f0c040", label:"⭐" },
+  "Cartas Especiales Plus":  { grad:["#0a1830","#1a3060"], accent:"#7dd3fc", label:"💎" },
+  "Nuevo Balón de Oro":  { grad:["#1a1000","#2d1c00"], accent:"#f0c040", label:"🏆" },
+  "Balón de Oro Autógrafo":  { grad:["#1a1000","#2d1c00"], accent:"#fbbf24", label:"✍" },
+  // MUNDIAL STICKERS
+  "Album":               { grad:["#001428","#002040"], accent:"#38bdf8", label:"📖" },
+  "Historia Mundial":    { grad:["#1a0a00","#2d1400"], accent:"#f59e0b", label:"🌍" },
+  "Coca Cola":           { grad:["#1a0000","#2d0000"], accent:"#dc2626", label:"🥤" },
+  "Extra Stickers":      { grad:["#001a00","#003300"], accent:"#4ade80", label:"➕" },
+  "Selecciones":         { grad:["#1e2540","#0f1420"], accent:"#38bdf8", label:"🌐" },
   // MUNDIAL
   "Golden Baller":       { grad:["#1a1000","#2d1c00"], accent:"#f0c040", label:"🏅" },
   "Contenders":          { grad:["#0a1020","#162030"], accent:"#60a5fa", label:"⚔️" },
@@ -1397,27 +1453,44 @@ function getSectionStyle(section) {
 }
 
 // - COLLECTION GRID SCREEN -
-function CollectionGridScreen({ collId, ownedMap, repeatsMap, onSelectGroup, onBack, T }) {
-  const cards = collId === 'laliga' ? LALIGA_CARDS : MUNDIAL_CARDS;
-  const collName = collId === 'laliga' ? 'La Liga 2025-26' : 'Mundial 2026';
-  const collColor = collId === 'laliga' ? '#f97316' : '#3b82f6';
+function CollectionGridScreen({ collId, ownedMap, repeatsMap, onSelectGroup, onBack, onSetMode, collMode, T }) {
+  const coll = COLLECTIONS[collId];
+  const cards = coll.cards;
+  const collName = coll.name;
+  const collColor = coll.color;
 
   // Build groups based on collection
   const groups = useMemo(() => {
     const map = {};
     cards.forEach(c => {
       const owned = ownedMap[c.id] !== undefined ? ownedMap[c.id] : c.owned;
-      // Group key: for Regulares use team, otherwise use team (subcategory)
       let groupKey, groupSection;
       if (collId === 'laliga') {
         if (c.section === 'Regulares') {
           groupKey = c.team;
           groupSection = 'Regulares';
         } else {
+          groupKey = c.team || c.section;
+          groupSection = c.section;
+        }
+      } else if (collId === 'megacracks') {
+        if (c.section === 'Equipos') {
+          groupKey = resolveTeam(c.team);
+          groupSection = 'Equipos';
+        } else {
+          groupKey = c.section;
+          groupSection = c.section;
+        }
+      } else if (collId === 'mundialst') {
+        if (c.section === 'Selecciones') {
           groupKey = c.team;
+          groupSection = 'Selecciones';
+        } else {
+          groupKey = c.section;
           groupSection = c.section;
         }
       } else {
+        // mundial Adrenalyn
         if (c.section === 'Selecciones') {
           groupKey = c.team;
           groupSection = 'Selecciones';
@@ -1428,7 +1501,7 @@ function CollectionGridScreen({ collId, ownedMap, repeatsMap, onSelectGroup, onB
           groupKey = c.team === 'Contenders' ? 'Contenders - Grupos' : c.team;
           groupSection = 'Contenders';
         } else {
-          groupKey = c.team;
+          groupKey = c.team || c.section;
           groupSection = c.section;
         }
       }
@@ -1439,10 +1512,12 @@ function CollectionGridScreen({ collId, ownedMap, repeatsMap, onSelectGroup, onB
     return Object.values(map);
   }, [cards, ownedMap, collId]);
 
-  // Organize into sections
-  const sectionOrder = collId === 'laliga'
-    ? ['Regulares','Especiales','Actualización Plus','Coleccionables','Edición Limitada']
-    : ['Golden Baller','Selecciones','Contenders','Especiales','Coleccionables'];
+  // Section display order per collection
+  const sectionOrder =
+    collId === 'laliga'     ? ['Regulares','Actualización Plus','Especiales','Coleccionables','Edición Limitada'] :
+    collId === 'megacracks' ? ['Elite','Equipos','Vértigo','Zona VIP','Master Rookie','Flashback','Nuevos Fichajes','3a Edicion','Parallels','Inserts','Autografos','Especiales','Cards Indice'] :
+    collId === 'mundialst'  ? ['Album','Selecciones','Historia Mundial','Extra Stickers','Coca Cola'] :
+    ['Golden Baller','Selecciones','Contenders','Especiales','Coleccionables'];
 
   const grouped = useMemo(() => {
     const s = {};
@@ -1470,13 +1545,13 @@ function CollectionGridScreen({ collId, ownedMap, repeatsMap, onSelectGroup, onB
 
       {/* Header */}
       <div style={{background:`linear-gradient(135deg,${collColor}22,${T.bg})`,
-        borderBottom:`1px solid ${T.border}`,padding:'16px 16px 12px',
+        borderBottom:`1px solid ${T.border}`,padding:'max(56px,env(safe-area-inset-top)) 16px 12px',
         position:'sticky',top:0,zIndex:100,backdropFilter:'blur(12px)'}}>
         <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}>
           <button onClick={onBack} style={{background:'none',border:'none',color:T.text,
             fontSize:22,cursor:'pointer',lineHeight:1,padding:'4px 8px 4px 0'}}>←</button>
           <div style={{flex:1}}>
-            <div style={{fontSize:9,letterSpacing:2,color:T.textDim,textTransform:'uppercase'}}>Trading Cards</div>
+            <div style={{fontSize:9,letterSpacing:2,color:T.textDim,textTransform:'uppercase'}}>{coll.sub}</div>
             <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:22,letterSpacing:1,lineHeight:1}}>{collName}</div>
           </div>
           <div style={{textAlign:'right'}}>
@@ -1623,10 +1698,11 @@ function CollectionScreen({ collId, ownedMap, repeatsMap, onToggle, onRepeat, on
     return s;
   },[cards]);
 
-  const isLL = collId==="laliga";
-  const headerGrad = isLL
-    ? `linear-gradient(135deg,#dc262618 0%,#f9731610 50%,${T.bg} 80%)`
-    : `linear-gradient(135deg,#16a34a18 0%,#a855f710 50%,${T.bg} 80%)`;
+  const headerGrad =
+    collId==="laliga"     ? `linear-gradient(135deg,#dc262618 0%,#f9731610 50%,${T.bg} 80%)` :
+    collId==="megacracks" ? `linear-gradient(135deg,#b4500018 0%,#f0c04010 50%,${T.bg} 80%)` :
+    collId==="mundialst"  ? `linear-gradient(135deg,#0369a118 0%,#38bdf810 50%,${T.bg} 80%)` :
+    `linear-gradient(135deg,#16a34a18 0%,#a855f710 50%,${T.bg} 80%)`;
 
   return (
     <div style={{minHeight:"100vh",background:T.bg,color:T.text,paddingBottom:80,fontFamily:"'Inter',sans-serif"}}>
@@ -1636,7 +1712,7 @@ function CollectionScreen({ collId, ownedMap, repeatsMap, onToggle, onRepeat, on
         input{background:${T.surface};border:1px solid ${T.border};border-radius:10px;padding:10px 14px;color:${T.text};font-size:14px;font-family:'Inter',sans-serif;width:100%;outline:none;}
         input:focus{border-color:${T.accent};}
       `}</style>
-      <div style={{background:headerGrad,borderBottom:`1px solid ${T.border}`,padding:"56px 16px 12px",position:"sticky",top:0,zIndex:100,backdropFilter:"blur(12px)"}}>
+      <div style={{background:headerGrad,borderBottom:`1px solid ${T.border}`,padding:"max(56px,env(safe-area-inset-top)) 16px 12px",position:"sticky",top:0,zIndex:100,backdropFilter:"blur(12px)"}}>
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
           <button onClick={onBack} style={{background:"none",border:"none",color:T.text,fontSize:22,cursor:"pointer"}}>←</button>
           <div style={{flex:1}}>
