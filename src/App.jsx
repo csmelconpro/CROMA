@@ -2707,7 +2707,9 @@ export default function App() {
       const { data, error } = await supabase
         .from('collection_progress')
         .select('coll_id,card_id,owned,repeats')
-        .eq('user_id', u.id);
+        .eq('user_id', u.id)
+        .order('updated_at', { ascending: false })
+        .limit(10000); // Aumentar límite para asegurar que carga todo
       if (error) { console.warn('[croma] load error', error.message); return; }
       
       // Build maps from cloud
