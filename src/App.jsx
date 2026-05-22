@@ -2447,15 +2447,36 @@ function LandingPage({ onStart, T }) {
       padding:20,color:"#fff",fontFamily:"'Inter',sans-serif",position:"relative"
     }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');`}</style>
-      <div style={{fontSize:72,fontWeight:900,marginBottom:16,textShadow:"0 4px 20px rgba(0,0,0,0.3)",letterSpacing:-2}}>
-        CROMA
+      <div style={{marginBottom:24,display:"flex",justifyContent:"center"}}>
+        <svg width="320" height="140" viewBox="0 0 320 140" style={{filter:"drop-shadow(0 8px 32px rgba(0,0,0,0.4))"}}>
+          <rect x="15" y="25" width="290" height="90" rx="22" 
+            fill="rgba(255,255,255,0.15)" 
+            stroke="rgba(255,255,255,0.3)" 
+            strokeWidth="3"/>
+          <text x="160" y="88" 
+            fontSize="64" 
+            fontWeight="900" 
+            fill="#ffffff"
+            textAnchor="middle"
+            fontFamily="'Inter', sans-serif"
+            letterSpacing="3">
+            CROMA
+          </text>
+          <rect x="260" y="38" width="32" height="44" rx="5" 
+            fill="rgba(255,255,255,0.25)" 
+            stroke="rgba(255,255,255,0.4)" 
+            strokeWidth="2.5"/>
+          <circle cx="276" cy="53" r="7" fill="rgba(255,255,255,0.6)"/>
+          <rect x="264" y="66" width="24" height="3.5" rx="1.75" fill="rgba(255,255,255,0.6)"/>
+          <rect x="264" y="72" width="24" height="3.5" rx="1.75" fill="rgba(255,255,255,0.6)"/>
+        </svg>
       </div>
       <div style={{fontSize:20,fontWeight:600,marginBottom:8,opacity:0.95}}>
-        Tu colección de cartas Panini
+        Gestiona tu colección de cromos
       </div>
       <div style={{fontSize:15,opacity:0.8,marginBottom:40,textAlign:"center",maxWidth:400,lineHeight:1.5}}>
-        Gestiona tus cartas de La Liga, Mundial, Megacracks y más.
-        Marca tus duplicados, calcula tu progreso y encuentra lo que te falta.
+        Controla tus colecciones de La Liga, Mundial y Megacracks.
+        Marca repetidas, calcula tu progreso y encuentra lo que te falta.
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12,marginBottom:40,maxWidth:400,width:"100%"}}>
         {[
@@ -2486,7 +2507,7 @@ function LandingPage({ onStart, T }) {
         Comenzar 🚀
       </button>
       <div style={{position:"absolute",bottom:20,fontSize:12,opacity:0.6}}>
-        Panini Adrenalyn XL Collection Manager
+        Gestor de Colecciones · Adrenalyn XL
       </div>
     </div>
   );
