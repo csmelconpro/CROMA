@@ -2784,13 +2784,14 @@ export default function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setAuthLoading(false);
-      if (session?.user) setTimeout(async () => { await loadFromCloud(); await loadProfileFromSupabase(); }, 800);
+      if (session?.user) setTimeout(async () => { await loadFromCloud(); await loadProfileFromSupabase(); }, 2500);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
       if (event === 'SIGNED_IN') {
         // Load from cloud first, then sync local to cloud
-        setTimeout(async () => { await loadFromCloud(); await loadProfileFromSupabase(); }, 600);
+        // Wait 2.5s to ensure previous device finished syncing
+        setTimeout(async () => { await loadFromCloud(); await loadProfileFromSupabase(); }, 2500);
       }
     });
     return () => subscription.unsubscribe();
