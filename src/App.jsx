@@ -2447,29 +2447,58 @@ function LandingPage({ onStart, T }) {
       padding:20,color:"#fff",fontFamily:"'Inter',sans-serif",position:"relative"
     }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');`}</style>
-      <div style={{marginBottom:24,display:"flex",justifyContent:"center"}}>
-        <svg width="320" height="140" viewBox="0 0 320 140" style={{filter:"drop-shadow(0 8px 32px rgba(0,0,0,0.4))"}}>
-          <rect x="15" y="25" width="290" height="90" rx="22" 
-            fill="rgba(255,255,255,0.15)" 
-            stroke="rgba(255,255,255,0.3)" 
-            strokeWidth="3"/>
-          <text x="160" y="88" 
-            fontSize="64" 
-            fontWeight="900" 
-            fill="#ffffff"
-            textAnchor="middle"
-            fontFamily="'Inter', sans-serif"
-            letterSpacing="3">
-            CROMA
-          </text>
-          <rect x="260" y="38" width="32" height="44" rx="5" 
-            fill="rgba(255,255,255,0.25)" 
-            stroke="rgba(255,255,255,0.4)" 
-            strokeWidth="2.5"/>
-          <circle cx="276" cy="53" r="7" fill="rgba(255,255,255,0.6)"/>
-          <rect x="264" y="66" width="24" height="3.5" rx="1.75" fill="rgba(255,255,255,0.6)"/>
-          <rect x="264" y="72" width="24" height="3.5" rx="1.75" fill="rgba(255,255,255,0.6)"/>
+      <div style={{marginBottom:32,display:"flex",justifyContent:"center",position:"relative"}}>
+        <svg width="400" height="160" viewBox="0 0 400 160" style={{filter:"drop-shadow(0 12px 40px rgba(0,0,0,0.5))"}}>
+          <defs>
+            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(255,255,255,0.25)"/>
+              <stop offset="100%" stopColor="rgba(255,255,255,0.05)"/>
+            </linearGradient>
+            <linearGradient id="textGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#ffffff"/>
+              <stop offset="100%" stopColor="rgba(255,255,255,0.85)"/>
+            </linearGradient>
+          </defs>
+          
+          <g style={{animation:"float 3s ease-in-out infinite"}}>
+            <rect x="20" y="20" width="360" height="120" rx="28" 
+              fill="url(#logoGrad)" 
+              stroke="rgba(255,255,255,0.4)" 
+              strokeWidth="3"/>
+            
+            <text x="200" y="105" 
+              fontSize="82" 
+              fontWeight="900" 
+              fill="url(#textGrad)"
+              textAnchor="middle"
+              fontFamily="'Inter', sans-serif"
+              letterSpacing="8"
+              style={{textShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>
+              CROMA
+            </text>
+            
+            <g transform="translate(310, 35)">
+              <rect width="50" height="68" rx="8" 
+                fill="rgba(255,255,255,0.3)" 
+                stroke="rgba(255,255,255,0.5)" 
+                strokeWidth="3"/>
+              <circle cx="25" cy="22" r="10" fill="rgba(255,255,255,0.7)"/>
+              <rect x="8" y="40" width="34" height="5" rx="2.5" fill="rgba(255,255,255,0.7)"/>
+              <rect x="8" y="48" width="34" height="5" rx="2.5" fill="rgba(255,255,255,0.7)"/>
+              <rect x="8" y="56" width="20" height="5" rx="2.5" fill="rgba(255,255,255,0.6)"/>
+              
+              <circle cx="42" cy="10" r="8" fill="rgba(255,255,255,0.4)"/>
+              <text x="42" y="14" fontSize="12" fontWeight="900" fill="#ffffff" textAnchor="middle">⚽</text>
+            </g>
+          </g>
         </svg>
+        
+        <style>{`
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+          }
+        `}</style>
       </div>
       <div style={{fontSize:20,fontWeight:600,marginBottom:8,opacity:0.95}}>
         Gestiona tu colección de cromos
