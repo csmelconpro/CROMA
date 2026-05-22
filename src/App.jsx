@@ -2728,6 +2728,7 @@ export default function App() {
       // MERGE INTELIGENTE: Combinar local + nube
       const mergedOwned = {};
       const mergedRepeats = {};
+      let hasNewLocalData = false;
       
       Object.keys(COLLECTIONS).forEach(collId => {
         // Cargar datos locales actuales
@@ -2747,6 +2748,7 @@ export default function App() {
         Object.keys(localOwned).forEach(cardId => {
           if (localOwned[cardId] && !mergedOwned[collId][cardId]) {
             mergedOwned[collId][cardId] = true;
+            hasNewLocalData = true;
             console.log(`  ➕ Agregando ${cardId} desde local`);
           }
         });
@@ -2757,6 +2759,7 @@ export default function App() {
           const cloudRep = mergedRepeats[collId][cardId] || 0;
           if (localRep > cloudRep) {
             mergedRepeats[collId][cardId] = localRep;
+            hasNewLocalData = true;
             console.log(`  🔁 Actualizando repeats de ${cardId}: ${cloudRep} → ${localRep}`);
           }
         });
@@ -2765,12 +2768,19 @@ export default function App() {
         LS.saveAll(collId, mergedOwned[collId], mergedRepeats[collId]);
       });
       
+      // Actualizar estados React
       setAllOwned(mergedOwned);
       setAllRepeats(mergedRepeats);
       
-      // Después del merge, subir el resultado a la nube
-      console.log('⬆️ Sincronizando merge a Supabase...');
-      setTimeout(() => syncToCloud(mergedOwned, mergedRepeats), 500);
+      // Si hay datos nuevos de local, subirlos a la nube
+      if (hasNewLocalData) {
+        console.log('⬆️ Sincronizando datos locales nuevos a Supabase...');
+        // Esperar a que React actualice los estados antes de sync
+        setTimeout(() => {
+          // Los refs ya tendrán los valores actualizados gracias al useEffect
+          syncToCloud(mergedOwned, mergedRepeats);
+        }, 1000);
+      }
       
       setSyncStatus('synced');
       console.log('✅ MERGE completado');
@@ -2801,12 +2811,16 @@ export default function App() {
   const syncToCloud = async (ownedSnap, repeatsSnap) => {
     const { data: { user: u } } = await supabase.auth.getUser();
     if (!u) return;
+    console.log('🔄 [syncToCloud] Iniciando sync...');
     setSyncStatus('syncing');
     try {
       const rows = [];
       Object.entries(COLLECTIONS).forEach(([collId, coll]) => {
         const om = ownedSnap[collId] || {};
         const rm = repeatsSnap[collId] || {};
+        const ownedCount = Object.keys(om).filter(k => om[k]).length;
+        console.log(`  📦 ${collId}: ${ownedCount} cartas owned, ${Object.keys(rm).length} con repeats`);
+        
         coll.cards.forEach(card => {
           const isOwned = om[card.id] !== undefined ? om[card.id] : card.owned;
           const reps = rm[card.id] || 0;
@@ -2822,15 +2836,22 @@ export default function App() {
           }
         });
       });
+      
+      console.log(`  ⬆️ Subiendo ${rows.length} filas a Supabase...`);
+      
       for (let i = 0; i < rows.length; i += 100) {
+        const batch = rows.slice(i, i + 100);
+        console.log(`    Batch ${Math.floor(i/100)+1}: ${batch.length} filas`);
         const { error } = await supabase
           .from('collection_progress')
-          .upsert(rows.slice(i, i + 100), { onConflict: 'user_id,coll_id,card_id' });
+          .upsert(batch, { onConflict: 'user_id,coll_id,card_id' });
         if (error) throw error;
       }
+      
+      console.log('  ✅ Sync completado exitosamente');
       setSyncStatus('synced');
     } catch (e) {
-      console.warn('[croma] sync error', e.message);
+      console.error('  ❌ [syncToCloud] Error:', e.message);
       setSyncStatus('error');
     }
   };
